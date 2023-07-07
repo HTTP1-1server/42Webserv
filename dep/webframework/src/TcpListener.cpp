@@ -38,7 +38,7 @@ TcpListener::~TcpListener()
 
 template<>
 TcpListener::Socket TcpListener::accept<Select>(void) {
-	return Select;
+	return 0;
 };
 
 int TcpListener::getSocket() const {

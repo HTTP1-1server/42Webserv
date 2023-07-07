@@ -4,12 +4,9 @@
 #include <exception>
 #include <netinet/in.h> // htons
 
-enum IoMultiplex {
-    Select,
-    Epoll,
-    Kqueue,
-    Quanda,
-};
+struct Select;
+struct Epoll;
+struct Kqueue;
 
 class TcpListener {
 public:
@@ -46,7 +43,7 @@ public:
      * @tparam T 
      * @return Socket 
      */
-    template<IoMultiplex M>
+    template<class IoMultiplex>
     Socket accept(void);
 
     /**
