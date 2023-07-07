@@ -8,6 +8,7 @@ enum IoMultiplex {
     Select,
     Epoll,
     Kqueue,
+    Quanda,
 };
 
 class TcpListener {

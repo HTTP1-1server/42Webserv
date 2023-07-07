@@ -1,27 +1,27 @@
 #The Target
 #For Binary: <name> For Library: lib<name>.a
-NAME		:=	webserv
+NAME		:=	libwebframework2.a
 
 #Source Files
-SOURCES		:=	main.cpp \
+SOURCES		:=	TcpListener2.cpp \
 
 #The Directories, Source, Includes, Dependencies
 TESTDIR		:=	test
 BONUSDIR	:=	bonus
 SRCDIR		:=	src
-INCDIR		:=	inc
+INCDIR		:=	../webframework/inc
 DEPDIR		:=	dep
 BLDDIR		:=	obj
 
 #Dependencies
-DEPLIBS		:=	webframework webframework2
-DEPDIRS		:=	webframework webframework2
+DEPLIBS		:=	
+DEPDIRS		:=	
 
 #Compiler, Linker, Flags
 CC			:=	c++
 # DEBUG		:=	-g
 # SANITIZE	:=	-fsanitize=address
-CFLAGS		:=	-std=c++98 # -Wall -Wextra -Werror
+CFLAGS		:=	-std=c++98 -Wall -Wextra -Werror
 
 #-------------------------------------------------------------------------------
 #DO NOT EDIT BELOW THIS LINE
@@ -29,7 +29,7 @@ CFLAGS		:=	-std=c++98 # -Wall -Wextra -Werror
 TARGET		:=	$(suffix $(NAME))
 CEXT		:=	cpp
 OEXT		:=	o
-INC			:=	-I$(INCDIR) $(addsuffix /$(INCDIR), $(addprefix -I$(DEPDIR)/, $(DEPDIRS)))
+INC			:=	-I$(INCDIR) $(addprefix -I$(DEPDIR)/, $(DEPDIRS))
 LIB			:=	$(addprefix -l, $(DEPLIBS))
 LID			:=	$(addprefix -L$(DEPDIR)/, $(DEPDIRS))
 SRCS		:=	$(addprefix $(SRCDIR)/,$(SOURCES))
