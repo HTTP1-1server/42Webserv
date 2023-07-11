@@ -3,7 +3,8 @@
 NAME		:=	libwebframework.a
 
 #Source Files
-SOURCES		:=	TcpListener.cpp \
+SOURCES		:=	Server.cpp \
+				ServerController.cpp \
 
 #The Directories, Source, Includes, Dependencies
 TESTDIR		:=	test
@@ -19,7 +20,7 @@ DEPDIRS		:=
 
 #Compiler, Linker, Flags
 CC			:=	c++
-# DEBUG		:=	-g
+DEBUG		:=	-g
 # SANITIZE	:=	-fsanitize=address
 CFLAGS		:=	-std=c++98 -Wall -Wextra -Werror
 

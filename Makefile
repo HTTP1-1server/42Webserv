@@ -19,7 +19,7 @@ DEPDIRS		:=	webframework
 
 #Compiler, Linker, Flags
 CC			:=	c++
-# DEBUG		:=	-g
+DEBUG		:=	-g
 # SANITIZE	:=	-fsanitize=address
 CFLAGS		:=	-std=c++98 # -Wall -Wextra -Werror
 
