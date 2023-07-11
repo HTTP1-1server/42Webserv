@@ -3,7 +3,8 @@
 NAME		:=	libwebframework.a
 
 #Source Files
-SOURCES		:=	TcpListener.cpp \
+SOURCES		:=	Server.cpp \
+				ServerController.cpp \
 
 #The Directories, Source, Includes, Dependencies
 TESTDIR		:=	test
