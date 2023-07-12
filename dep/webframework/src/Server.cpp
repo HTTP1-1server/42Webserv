@@ -121,22 +121,23 @@ int & Server::getAddrLen() {
     return sockAddrLen;
 }
 
-const char *Server::SocketCreationException::what() throw()
+const char* Server::SocketCreationException::what() const throw()
 {
     return "cannot create socket";
 }
 
-const char *Server::SocketOptionException::what() throw()
+const char* Server::SocketOptionException::what() const throw()
 {
     return "cannot set socket option";
 }
 
-const char *Server::SocketBindingException::what() throw()
+const char* Server::SocketBindingException::what() const throw()
 {
     return "cannot bind socket";
 }
 
-const char *Server::SocketListeningException::what() throw()
+const char* Server::SocketListeningException::what() const throw()
 {
     return "cannot listen socket";
 }
+

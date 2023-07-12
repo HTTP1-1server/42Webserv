@@ -42,15 +42,19 @@ public:
     int & getAddrLen();
 
     class SocketCreationException : public std::exception {
-        virtual const char* what() throw();
+		public:
+			virtual const char* what() const throw();
     };
     class SocketOptionException : public std::exception {
-        virtual const char* what() throw();
+        public:
+			virtual const char* what() const throw();
     };
     class SocketBindingException : public std::exception {
-        virtual const char* what() throw();
+        public:
+			virtual const char* what() const throw();
     };
     class SocketListeningException : public std::exception {
-        virtual const char* what() throw();
+        public:
+			virtual const char* what() const throw();
     };
 };
