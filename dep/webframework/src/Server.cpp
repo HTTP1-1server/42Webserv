@@ -9,7 +9,8 @@ Server::Server(const Port port) {
     //create a master socket
     if((listenSd = socket(AF_INET , SOCK_STREAM , 0)) == 0)
         throw SocketCreationException();
-
+	if (fcntl(listenSd, F_SETFL, O_NONBLOCK) < 0)
+        throw SocketOptionException();
     int opt = 1;
     //set master socket to allow multiple connections,
     //this is just a good habit, it will work without this
@@ -63,9 +64,15 @@ int Server::acceptSdBy<Select>(void) {
         printf("select error\n");
     }
     if (FD_ISSET(listenSd, &readFds)) {
-        int connectSd = accept(listenSd, (struct sockaddr *)&sockAddr, (socklen_t*)&sockAddrLen);
-        if (connectSd >= 0)
-            clientSockets[numClients++] = connectSd;
+		int connectSd = accept(listenSd, (struct sockaddr *)&sockAddr, (socklen_t *)&sockAddrLen);
+        if (connectSd >= 0) {
+            if (fcntl(connectSd, F_SETFL, O_NONBLOCK) < 0) {
+                printf("Failed to change the socket to non-blocking\n");
+                close(connectSd);
+            } else {
+                clientSockets[numClients++] = connectSd;
+            }
+        }
     }
 
     const char *message = "\
