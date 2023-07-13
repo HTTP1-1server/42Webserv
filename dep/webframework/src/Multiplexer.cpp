@@ -16,10 +16,15 @@ Event SelectMultiplexer::detectEvent(ListenSd listenSd, struct sockaddr *sockAdd
 	for (int i = 0; i < numClients; i++)
 		FD_SET(clientSockets[i], &readFds);
 	//wait for an eventCounts on one of the sockets , timeout is NULL , 
-	//so wait indefinitely 
-	if (select(maxSd + 1 , &readFds , NULL , NULL , NULL) < 0) {
+	//so wait indefinitely
+    struct timeval tv = {0, 0};
+    int activity = select(maxSd + 1 , &readFds , NULL , NULL , &tv);
+	if (activity < 0) {
 		printf("select error\n");
-	}
+        return Event();
+    } else if (activity == 0) {
+        return Event();
+    }
 	if (FD_ISSET(listenSd, &readFds)) {
 		int connectSd = accept(listenSd, sockAddr, sockAddrLen);
 		if (connectSd >= 0) {
@@ -44,7 +49,7 @@ Connection: close\r\n\
 <h1>Hello, World!</h1>\n\
 </body>\n\
 </html>\n";
-	char buffer[1000];
+	char buffer[10];
 	int n;
 
 	for (int i = 0; i < numClients; i++) {
@@ -52,7 +57,7 @@ Connection: close\r\n\
 			if ((n=recv(clientSockets[i], buffer, sizeof(buffer), MSG_DONTWAIT))!=0) {
 				buffer[n] = '\0';
 				printf("receive - [%s]\n", buffer);
-				sleep(2);
+				// sleep(2);
 				send(clientSockets[i], message, strlen(message), MSG_DONTWAIT);
 				// printf("send - [%s]\n", message);
 			} else {
