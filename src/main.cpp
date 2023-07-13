@@ -12,6 +12,7 @@ int main(int argc , char *argv[])
 {  
     std::vector<Port> ports;
     ports.push_back(PORT);
+    ports.push_back(PORT + 1);
 
     ServerController serverController(ports);
     serverController.run();

@@ -94,7 +94,8 @@ Connection: close\r\n\
 		if (FD_ISSET(clientSockets[i], &readFds)) {
 			if ((n=recv(clientSockets[i], buffer, sizeof(buffer), MSG_DONTWAIT))!=0) {
 				buffer[n] = '\0';
-				// printf("receive - [%s]\n", buffer);
+				printf("receive - [%s]\n", buffer);
+				sleep(2);
 				send(clientSockets[i], message, strlen(message), MSG_DONTWAIT);
 				// printf("send - [%s]\n", message);
 			} else {
