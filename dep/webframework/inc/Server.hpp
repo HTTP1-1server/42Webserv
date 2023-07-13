@@ -21,19 +21,17 @@ typedef struct sockaddr_in  SocketAddr;
 
 class Server {
 private:
-    ListenSd listenSd;
-    SocketAddr sockAddr;
-    int sockAddrLen;
     fd_set readFds;
     int clientSockets[MAX_CLIENTS];
     int numClients;
 
 public:
+    ListenSd listenSd;
+    SocketAddr sockAddr;
+    int sockAddrLen;
+    
     Server(const Port port);
     ~Server();
-
-    template<IoMultiplex M>
-    int acceptSdBy(void);
 
     ListenSd getListenSd() const;
 
