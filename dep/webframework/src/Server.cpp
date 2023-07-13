@@ -92,11 +92,11 @@ Connection: close\r\n\
 
     for (int i = 0; i < numClients; i++) {
         if (FD_ISSET(clientSockets[i], &readFds)) {
-            if ((n=read(clientSockets[i], buffer, sizeof(buffer)))!=0) {
+            if ((n=recv(clientSockets[i], buffer, sizeof(buffer), MSG_DONTWAIT))!=0) {
                 buffer[n] = '\0';
-                printf("receive - [%s]\n", buffer);
-                write(clientSockets[i], message, n);
-                printf("send - [%s]\n", message);
+                // printf("receive - [%s]\n", buffer);
+                send(clientSockets[i], message, strlen(message), MSG_DONTWAIT);
+                // printf("send - [%s]\n", message);
             } else {
                 printf("EOF\n");
                 close(clientSockets[i]);
@@ -108,6 +108,8 @@ Connection: close\r\n\
 			// send(clientSockets[i], message, strlen(message), 0);
         }
     }
+
+
     
     // TODO: 클라이언트 너무 많이 요청오면 처리
     // if (numClients == MAX_CLIENTS)
