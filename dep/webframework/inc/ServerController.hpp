@@ -64,8 +64,9 @@ void ServerController::run() {
             
             // //응답을 받았다면
             // if (isClientText(event)) {
+            //     RequestInfo requestInfo(event);
             //     //응답을 처리한다
-            //     ResponseMessage responseMessage = responseHandler.processResponse(event);
+            //     ResponseMessage responseMessage = responseHandler.processResponse(requestInfo);
                 
             //     consoleInputView.sendResponse(responseMessage);
             // }

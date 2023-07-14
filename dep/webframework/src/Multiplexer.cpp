@@ -57,7 +57,7 @@ Connection: close\r\n\
 		} else if ((FD_ISSET(iter->first, &readFds) == 0) && !iter->second.empty()) {
 				printf("====EVENT: %d, %s, %ld\n", iter->first, iter->second.c_str(), strlen(iter->second.c_str()));
 				printf("EOF\n");
-				send(iter->first, iter->second.c_str(), strlen(iter->second.c_str()), MSG_DONTWAIT);				
+				send(iter->first, iter->second.c_str(), strlen(iter->second.c_str()), MSG_DONTWAIT);
 				std::string eventMessage = iter->second;
 				close(iter->first);
 				clientSocketInfo.erase(iter);
