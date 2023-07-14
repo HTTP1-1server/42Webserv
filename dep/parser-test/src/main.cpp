@@ -20,14 +20,14 @@
 
 int main() {
 	Parser<LocationConfig> locationParser;
-	locationParser.setBlock("location", Parser::String);
-	locationParser.setTag("allow_method", Parser::List<std::string>);
+	locationParser.setTitledBlock<Parser::String>("location");
+	locationParser.setTag<Parser::List<std::string>>("allow_method");
 
 	Parser<ServerConfig> parser;
-	parser.setBlock("server");
-	parser.setTag("listen", Parser::Integer);
-	parser.setTag("host", Parser::List<std::string>);
-	parser.setTag("error_page", (Parser::List<int>, Parser::String));
+	parser.setUntitledBlock("server");
+	parser.setTag<Parser::Integer>("listen");
+	parser.setTag<Parser::List<std::string>>("host");
+	parser.setTag<(Parser::List<int>, Parser::String)>("error_page", ("code", "path"));
 	parser.setTag(locationParser);
 	parser.setCommentPrefix("#");
 	parser.setLineEndSuffix(";");
@@ -37,4 +37,8 @@ int main() {
 	std::string filename("default.conf");
 	std::ifstream file(filename);
 	ServerConfig serverConfig = parser.parse(file);
+
+	int listen = serverConfig["listen"];
+	std::vector<std::string> host = serverConfig["host"];
+
 }
