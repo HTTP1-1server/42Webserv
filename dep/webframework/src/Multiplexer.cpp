@@ -2,41 +2,35 @@
 
 Event SelectMultiplexer::detectEvent(ListenSd listenSd, struct sockaddr *sockAddr, socklen_t *sockAddrLen)
 {
-    int maxSd = listenSd;
-	//add child sockets to set 
-	for (int i = 0 ; i < numClients; i++)
-		if(clientSockets[i] > maxSd)
-			maxSd = clientSockets[i];
-	//clear the socket set 
-	FD_ZERO(&readFds);  
+	int maxSd = listenSd;
+	
+	for (ClientSocketInfo::const_iterator iter = this->clientSocketInfo.begin(); iter != this->clientSocketInfo.end(); ++iter)
+		if (iter->first > maxSd)
+			maxSd = iter->first;
 
-	//add master socket to set 
+	FD_ZERO(&readFds);  
 	FD_SET(listenSd, &readFds);
 
-	for (int i = 0; i < numClients; i++)
-		FD_SET(clientSockets[i], &readFds);
-	//wait for an eventCounts on one of the sockets , timeout is NULL , 
-	//so wait indefinitely
-    struct timeval tv = {0, 0};
-    int activity = select(maxSd + 1 , &readFds , NULL , NULL , &tv);
-	if (activity < 0) {
-		printf("select error\n");
-        return Event();
-    } else if (activity == 0) {
-        return Event();
-    }
-	if (FD_ISSET(listenSd, &readFds)) {
-		int connectSd = accept(listenSd, sockAddr, sockAddrLen);
-		if (connectSd >= 0) {
-			if (fcntl(connectSd, F_SETFL, O_NONBLOCK) < 0) {
-				printf("Failed to change the socket to non-blocking\n");
-				close(connectSd);
-			} else {
-				clientSockets[numClients++] = connectSd;
+	for (ClientSocketInfo::const_iterator iter = this->clientSocketInfo.begin(); iter != this->clientSocketInfo.end(); ++iter)
+		FD_SET(iter->first, &readFds);
+
+	struct timeval tv = {0, 0};
+	int activity = select(maxSd + 1 , &readFds , NULL , NULL , &tv);
+	if (activity > 0) {
+		if (FD_ISSET(listenSd, &readFds)) {
+			int connectSd = accept(listenSd, sockAddr, sockAddrLen);
+			if (connectSd >= 0) {
+				if (fcntl(connectSd, F_SETFL, O_NONBLOCK) < 0) {
+					printf("Failed to change the socket to non-blocking\n");
+					close(connectSd);
+				} else {
+					clientSocketInfo.insert(std::make_pair(connectSd, std::string()));
+				}
 			}
 		}
 	}
 
+/*
 	const char *message = "\
 HTTP/1.1 200 OK\r\n\
 Server: Apache/2.2.14 (Win32)\r\n\
@@ -49,33 +43,27 @@ Connection: close\r\n\
 <h1>Hello, World!</h1>\n\
 </body>\n\
 </html>\n";
+*/
 	char buffer[10];
 	int n;
 
-	for (int i = 0; i < numClients; i++) {
-		if (FD_ISSET(clientSockets[i], &readFds)) {
-			if ((n=recv(clientSockets[i], buffer, sizeof(buffer), MSG_DONTWAIT))!=0) {
+	for (ClientSocketInfo::iterator iter = this->clientSocketInfo.begin(); iter != this->clientSocketInfo.end(); ++iter) {
+		if (FD_ISSET(iter->first, &readFds)) {
+			if ((n=	recv(iter->first, buffer, sizeof(buffer), MSG_DONTWAIT)) != 0) {
 				buffer[n] = '\0';
 				printf("receive - [%s]\n", buffer);
-				// sleep(2);
-				send(clientSockets[i], message, strlen(message), MSG_DONTWAIT);
-				// printf("send - [%s]\n", message);
-			} else {
+				iter->second.append(buffer);
+			} 
+		} else if ((FD_ISSET(iter->first, &readFds) == 0) && !iter->second.empty()) {
+				printf("====EVENT: %d, %s, %ld\n", iter->first, iter->second.c_str(), strlen(iter->second.c_str()));
 				printf("EOF\n");
-				close(clientSockets[i]);
-				if (i != numClients - 1)
-					clientSockets[i] = clientSockets[numClients - 1];
-				numClients--;
-				continue;
-			}
-			// send(clientSockets[i], message, strlen(message), 0);
+				send(iter->first, iter->second.c_str(), strlen(iter->second.c_str()), MSG_DONTWAIT);				
+				std::string eventMessage = iter->second;
+				close(iter->first);
+				clientSocketInfo.erase(iter);
+				
+				return eventMessage;
 		}
 	}
-
-
-	
-	// TODO: 클라이언트 너무 많이 요청오면 처리
-	// if (numClients == MAX_CLIENTS)
-	//     numClients %= MAX_CLIENTS;
-    return Event();
+	return Event();
 }
