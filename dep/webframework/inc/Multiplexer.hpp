@@ -2,6 +2,7 @@
 
 #include "Server.hpp"
 #include <string>
+#include <map>
 #include <sys/socket.h>
 #include <exception>
 #include <netinet/in.h> // htons
@@ -14,15 +15,15 @@
 #include <stdlib.h>
 #include <fcntl.h>
 
-#define MAX_CLIENTS (30)
-
-typedef std::string Event;
+typedef std::string						Event;
+typedef int								ConnectSd;
+typedef std::string						Message;
+typedef std::map<ConnectSd, Message>	ClientSocketInfo;
 
 class Multiplexer {
 private:
 protected:
-    int numClients;
-    int clientSockets[MAX_CLIENTS];
+    ClientSocketInfo clientSocketInfo;
     fd_set readFds;
 
     Multiplexer() {};
