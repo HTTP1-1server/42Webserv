@@ -5,6 +5,7 @@ NAME		:=
 #Source Files
 SOURCES		:=	testDefaultTypes.cpp \
 				testPairType.cpp \
+				testListPairType.cpp \
 
 #The Directories, Source, Includes, Dependencies
 SRCDIR		:=	src
