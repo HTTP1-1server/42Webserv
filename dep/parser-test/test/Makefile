@@ -1,16 +1,14 @@
 #The Target
 #For Binary: <name> For Library: lib<name>.a
-NAME		:=	parser-test
+NAME		:=	
 
 #Source Files
-SOURCES		:=	main.cpp \
+SOURCES		:=	testDefaultTypes.cpp \
 
 #The Directories, Source, Includes, Dependencies
-TESTDIR		:=	test
-BONUSDIR	:=	bonus
 SRCDIR		:=	src
 INCDIR		:=	inc
-DEPDIR		:=	..
+DEPDIR		:=	../..
 BLDDIR		:=	obj
 
 #Dependencies
@@ -36,11 +34,7 @@ SRCS		:=	$(addprefix $(SRCDIR)/,$(SOURCES))
 OBJS		:=	$(patsubst $(SRCDIR)/%,$(BLDDIR)/%,$(SRCS:.$(CEXT)=.$(OEXT)))
 
 #Defauilt Make
-all: $(NAME)
-
-bonus: 
-	@make -C $(BONUSDIR)
-	@cp $(BONUSDIR)/$(NAME) ./
+all: test
 
 #Remake
 re: fclean all
@@ -57,36 +51,27 @@ depend:
 
 #Clean only Objects
 clean:
-	@for ddir in $(addprefix $(DEPDIR)/, $(DEPDIRS)) $(TESTDIR); do \
+	@for ddir in $(addprefix $(DEPDIR)/, $(DEPDIRS)); do \
 		make -s -C $$ddir clean; \
 	done
 	@$(RM) -rf $(BLDDIR)
 
 #Full Clean, Objects and Binaries
 fclean: clean
-	@for ddir in $(addprefix $(DEPDIR)/, $(DEPDIRS)) $(TESTDIR); do \
+	@for ddir in $(addprefix $(DEPDIR)/, $(DEPDIRS)); do \
 		make -s -C $$ddir fclean; \
 	done
-	@$(RM) -rf $(NAME)
+	@$(RM) -rf $(basename $(notdir $(SOURCES)))
 
-#Link
-$(NAME): $(OBJS) 
-	@for ddir in $(addprefix $(DEPDIR)/, $(DEPDIRS)); do \
-		make -s -C $$ddir; \
-	done
-ifeq ($(TARGET), .a)
-	$(AR) -rc $@ $^
-else
-	$(CC) $(SANITIZE) $(DEBUG) $(INC) -o $(NAME) $^ $(LID) $(LIB)
-endif
-
-test: 
-	@make -s -C $(TESTDIR)
+test: $(OBJS)
 
 #Compile
 $(BLDDIR)/%.$(OEXT): $(SRCDIR)/%.$(CEXT) 
+	@for ddir in $(addprefix $(DEPDIR)/, $(DEPDIRS)); do \
+		make -s -C $$ddir; \
+	done
 	@mkdir -p $(dir $@)
-	$(CC) $(CFLAGS) $(SANITIZE) $(DEBUG) $(INC) -c -o $@ $<
+	$(CC) $(CFLAGS) $(SANITIZE) $(DEBUG) $(INC) -o $(basename $(notdir $@)) $< $(LID) $(LIB)
 
 #Non-File Targets
 .PHONY: all re clean fclean bonus directories depend test
