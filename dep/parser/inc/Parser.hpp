@@ -5,11 +5,6 @@
 #include <fstream>
 #include <vector>
 
-namespace Type {
-	typedef int				Integer;
-	typedef std::string		String;
-}
-
 template <class T>
 class Parser {
 public:
@@ -20,13 +15,13 @@ public:
 };
 
 template <>
-class Parser<Type::Integer> {
+class Parser<int> {
 public:
 	Parser() {};
 	~Parser() {};
 
-	Type::Integer parse(std::istream &stream) const {
-		Type::Integer value;
+	int parse(std::istream &stream) const {
+		int value;
 		stream >> value;
 		if (stream.fail()) {
 			stream.clear();
@@ -37,13 +32,13 @@ public:
 };
 
 template <>
-class Parser<Type::String> {
+class Parser<std::string> {
 public:
 	Parser() {};
 	~Parser() {};
 
-	Type::String parse(std::istream &stream) const {
-		Type::String value;
+	std::string parse(std::istream &stream) const {
+		std::string value;
 		stream >> value;
 		if (stream.fail()) {
 			stream.clear();
