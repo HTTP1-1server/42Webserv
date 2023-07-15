@@ -16,7 +16,7 @@ public:
 	Parser();
 	~Parser();
 
-	T parse(std::istream & stream) const;
+	T parse(std::istream & stream) const = 0;
 };
 
 template <>
@@ -73,6 +73,19 @@ public:
 			}
 		}
 		return values;
+	};
+};
+
+template <class T1, class T2>
+class Parser<std::pair<T1, T2> > {
+public:
+	Parser() {};
+	~Parser() {};
+
+	std::pair<T1, T2> parse(std::istream &stream) const {
+		T1 value1 = Parser<T1>().parse(stream);
+		T2 value2 = Parser<T2>().parse(stream);
+		return std::make_pair(value1, value2);
 	};
 };
 
