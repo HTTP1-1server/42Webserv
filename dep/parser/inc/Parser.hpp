@@ -5,13 +5,25 @@
 #include <fstream>
 #include <vector>
 
-template <class T>
+enum Namability {
+	Titled,
+	Untitled,
+};
+
+template <class T, Namability N = Untitled>
 class Parser {
 public:
-	Parser();
-	~Parser();
+	Parser() {};
+	~Parser() {};
 
-	T parse(std::istream & stream) const = 0;
+	std::multimap<std::string, Parser> hm;
+
+	T parse(std::istream & stream) const { return T();};
+
+	// template <class Value>
+	// void setNamedValue(std::string name) {
+	// 	hm.insert(std::make_pair(name, Value()));
+	// }
 };
 
 template <>
@@ -85,4 +97,4 @@ public:
 };
 
 
-#include "Parser.tpp"
+// #include "Parser.tpp"

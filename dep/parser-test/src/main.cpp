@@ -27,7 +27,8 @@ int main() {
 	parser.setUntitledBlock("server");
 	parser.setTag<Parser::Integer>("listen");
 	parser.setTag<Parser::List<std::string>>("host");
-	parser.setTag<(Parser::List<int>, Parser::String)>("error_page", ("code", "path"));
+	parser.setTag<Parser::List<std::string>>("seongspa");
+	// parser.setTag<(Parser::List<int>, Parser::String)>("error_page", ("code", "path"));
 	parser.setTag(locationParser);
 	parser.setCommentPrefix("#");
 	parser.setLineEndSuffix(";");

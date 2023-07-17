@@ -6,6 +6,8 @@ NAME		:=
 SOURCES		:=	testDefaultTypes.cpp \
 				testPairType.cpp \
 				testListPairType.cpp \
+				testParserComposition.cpp \
+				testAny.cpp \
 
 #The Directories, Source, Includes, Dependencies
 SRCDIR		:=	src
