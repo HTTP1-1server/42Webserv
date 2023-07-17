@@ -1,6 +1,6 @@
 #include "Multiplexer.hpp"
 
-Event SelectMultiplexer::detectEvent(ListenSd listenSd, struct sockaddr *sockAddr, socklen_t *sockAddrLen)
+std::pair<ConnectSd, Event> SelectMultiplexer::detectEvent(ListenSd listenSd, struct sockaddr *sockAddr, socklen_t *sockAddrLen)
 {
 	int maxSd = listenSd;
 	
@@ -57,13 +57,14 @@ Connection: close\r\n\
 		} else if ((FD_ISSET(iter->first, &readFds) == 0) && !iter->second.empty()) {
 				printf("====EVENT: %d, %s, %ld\n", iter->first, iter->second.c_str(), strlen(iter->second.c_str()));
 				printf("EOF\n");
-				send(iter->first, iter->second.c_str(), strlen(iter->second.c_str()), MSG_DONTWAIT);
+				// send(iter->first, iter->second.c_str(), strlen(iter->second.c_str()), MSG_DONTWAIT);
 				std::string eventMessage = iter->second;
-				close(iter->first);
+				ConnectSd connectSd = iter->first;
+				// close(iter->first);
 				clientSocketInfo.erase(iter);
 				
-				return eventMessage;
+				return std::make_pair(connectSd, eventMessage);
 		}
 	}
-	return Event();
+	return std::make_pair(-1, Event());
 }

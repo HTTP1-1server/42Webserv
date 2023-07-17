@@ -1,6 +1,9 @@
 #pragma once
 
 #include <string>
+#include <sstream>
+#include <iostream>
+#include "Multiplexer.hpp"
 
 typedef std::string Method;
 typedef std::string Path;
@@ -11,10 +14,23 @@ class RequestInfo
 private:
     Method method;
     Path location;
-    Path url;
     Body body;
+    RequestInfo();
+
 public:
+    Path url;
+
     RequestInfo(Event eventMessage) {
+        std::stringstream sstream(eventMessage);
+        std::string token;
+
+        sstream >> token; // GET
+        this->method = token;
+        sstream >> token; // url
+        this->url = token;
+        // this->location = 
+        std::getline(sstream, this->body, '\0');
+
         // event message example
         //
         //    GET / HTTP/1.1
@@ -46,5 +62,5 @@ public:
         // parse url (ex. /domain/static, /domain/image/hihi, /domain/cgi?what=value)
         // parse body
     };
-    ~RequestInfo();
+    ~RequestInfo() {};
 };

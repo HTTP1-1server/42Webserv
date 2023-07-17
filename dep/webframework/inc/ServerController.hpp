@@ -6,6 +6,11 @@
 #include <string>
 #include "Server.hpp"
 #include "Multiplexer.hpp"
+#include "InputView.hpp"
+#include "ResponseMessage.hpp"
+#include "utils/ResponseHandler.hpp"
+#include "RequestInfo.hpp"
+#include "ResponseMessage.hpp"
 
 typedef int ConnectSd;
 
@@ -13,6 +18,9 @@ class ServerController {
 private:
     std::vector<Server> servers;
     Multiplexer *multiplexer;
+    const InputView *inputView;
+
+    
 public:
     ServerController(const std::vector<Port> &ports);
     ~ServerController();
@@ -20,7 +28,7 @@ public:
     void run();
 };
 
-ServerController::ServerController(const std::vector<Port> &ports): multiplexer(new SelectMultiplexer()) {
+ServerController::ServerController(const std::vector<Port> &ports): multiplexer(new SelectMultiplexer()), inputView(new ConsoleInputView()) {
     servers.clear();
     servers.reserve(ports.size());
     for (std::vector<Port>::const_iterator port = ports.begin(); port != ports.end(); ++port) {
@@ -55,21 +63,30 @@ void ServerController::run() {
 
     // 생성자에서 주입
     // SelectMultiplexer selectMultiplexer; // selectMultiplexer
-    // ResponseHandler responseHandler("HTTP");
+
     // View consoleInputView();
-    
+
     while (1) {
         for (std::vector<Server>::iterator server = servers.begin(); server != servers.end(); ++server) {
-            Event event = multiplexer->detectEvent(server->listenSd, (struct sockaddr *)&server->sockAddr, (socklen_t *)&server->sockAddrLen);
+            std::pair<ConnectSd, Event> eventPair = multiplexer->detectEvent(server->listenSd, (struct sockaddr *)&server->sockAddr, (socklen_t *)&server->sockAddrLen);
             
-            // //응답을 받았다면
-            // if (isClientText(event)) {
-            //     RequestInfo requestInfo(event);
-            //     //응답을 처리한다
-            //     ResponseMessage responseMessage = responseHandler.processResponse(requestInfo);
-                
+            // 응답을 받았다면
+            if (isClientText(eventPair.second)) {
+                RequestInfo requestInfo(eventPair.second);
+                // 응답을 처리한다
+                // ResponseHandler *responseHandler = new HttpResponseHandler();
+                // ResponseHandler *responseHandler = ResponseHandler::generate("HTTP");
+                ResponseHandler *responseHandler = generate("HTTP");
+                // ResponseMessage responseMessage = responseHandler->processResponse(requestInfo);
+
+                std::pair<Code, Body> yongmin = responseHandler->processResponse(requestInfo);
+                std::cout << "before response BODY: " << yongmin.second << std::endl;
+                ResponseMessage responseMessage(yongmin);
+                inputView->sendResponseMessage(eventPair.first, responseMessage);
             //     consoleInputView.sendResponse(responseMessage);
-            // }
+                if (responseHandler)
+                    delete responseHandler;
+            }
         }
     }
 }

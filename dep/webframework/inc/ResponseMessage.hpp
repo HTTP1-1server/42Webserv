@@ -9,10 +9,21 @@ class ResponseMessage {
 private:
 	Code code;
 	Body body;
-	
+
 public:
-	ResponseMessage(Code code, Body body);
-	~ResponseMessage();
+	std::string message;
+
+	ResponseMessage(std::pair<Code, Body> pair) {
+		const std::string PROTOCOL("HTTP/1.1 ");
+		const std::string CODE_OK("200 ");
+		const std::string STATUS_OK("OK\r\n");
+		const std::string CONTENT_TYPE("Content-Type: text/html\r\n");
+
+		std::string header = PROTOCOL + CODE_OK + STATUS_OK + CONTENT_TYPE;
+		// header = list.join();
+		message = header + std::string("\n") + pair.second;
+	};
+	~ResponseMessage() {};
 };
 
 /*String request message -> Event -> handler -> processRequest(body, code) -> Response Message
@@ -113,33 +124,33 @@ Connection: close\r\n
 <--!error_400.html-->"
 */
 
-응답메시지
+// 응답메시지
 
 // Success
-[Header]
-HTTPVersion "HTTP/1.1"
-Code "200"
-Status "OK"
-ConLength 53
+// [Header]
+// HTTPVersion "HTTP/1.1"
+// Code "200"
+// Status "OK"
+// ConLength 53
 
-HTTP/1.1 200 OK
-Content-Length: 53\r\n\
-Content-Type: text/html\r\n\
-Connection: close\r\n\
+// HTTP/1.1 200 OK
+// Content-Length: 53\r\n\
+// Content-Type: text/html\r\n\
+// Connection: close\r\n\
 
-[Body]
-String
-
-
-시작라인
-	200 ...
-	OK
-	.
-헤더
-	.
-	.
-바디
-	.
+// [Body]
+// String
 
 
-*/
+// 시작라인
+// 	200 ...
+// 	OK
+// 	.
+// 헤더
+// 	.
+// 	.
+// 바디
+// 	.
+
+
+// */

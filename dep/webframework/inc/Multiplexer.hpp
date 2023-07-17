@@ -30,7 +30,7 @@ protected:
 
 public:
     virtual ~Multiplexer() {};
-    virtual Event detectEvent(ListenSd listenSd, struct sockaddr *sockAddr, socklen_t *sockAddrLen) = 0;
+    virtual std::pair<ConnectSd, Event> detectEvent(ListenSd listenSd, struct sockaddr *sockAddr, socklen_t *sockAddrLen) = 0;
 };
 
 
@@ -39,5 +39,5 @@ private:
 public:
     SelectMultiplexer() {};
     ~SelectMultiplexer() {};
-    Event detectEvent(ListenSd listenSd, struct sockaddr *sockAddr, socklen_t *sockAddrLen);
+    std::pair<ConnectSd, Event> detectEvent(ListenSd listenSd, struct sockaddr *sockAddr, socklen_t *sockAddrLen);
 };
