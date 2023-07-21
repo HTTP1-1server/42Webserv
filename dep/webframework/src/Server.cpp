@@ -18,7 +18,7 @@ Server::Server(const ServerConfig &config): config(config) {
 		sizeof(opt)) < 0)
 		throw SocketOptionException();
 
-	int port = *config.at("listen").data;
+	int port = *this->config.at("listen").data;
 	//type of socket created
 	memset(&sockAddr, 0, sizeof(sockAddr));
 	sockAddr.sin_family = AF_INET;
@@ -35,8 +35,6 @@ Server::Server(const ServerConfig &config): config(config) {
 
 	//accept the incoming connection
 	sockAddrLen = sizeof(sockAddr);
-	numClients = 0;
-
 }
 
 Server::~Server()

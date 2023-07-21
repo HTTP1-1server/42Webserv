@@ -7,6 +7,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include "ServerConfig.hpp"
+#include <vector>
 
 #define MAX_CLIENTS (30)
 
@@ -22,7 +23,6 @@ typedef struct sockaddr_in  SocketAddr;
 
 class Server {
 private:
-    int numClients;
     const ServerConfig &config;
 
 public:

@@ -43,8 +43,8 @@ ServerController::~ServerController() {
 // ServerController constructor (conf) -> setting
 typedef std::string Event;
 
-bool isClientText(Event &event) {
-    return event.length() != 0;
+bool isClientText(RequestMessage requestMessage) {
+    return requestMessage.size() != 0;
 }
 
 void ServerController::run() {
@@ -67,7 +67,7 @@ void ServerController::run() {
 
     while (1) {
         for (std::vector<Server>::iterator server = servers.begin(); server != servers.end(); ++server) {
-            std::pair<ConnectSd, Event> eventPair = multiplexer->detectEvent(server->listenSd, (struct sockaddr *)&server->sockAddr, (socklen_t *)&server->sockAddrLen);
+            std::pair<ConnectSd, RequestMessage> eventPair = multiplexer->detectEvent(server->listenSd, (struct sockaddr *)&server->sockAddr, (socklen_t *)&server->sockAddrLen);
             
             // 응답을 받았다면
             if (isClientText(eventPair.second)) {
@@ -79,7 +79,7 @@ void ServerController::run() {
                 // ResponseMessage responseMessage = responseHandler->processResponse(requestInfo);
 
                 std::pair<Code, Body> yongmin = responseHandler->processResponse(requestInfo);
-                std::cout << "before response BODY: " << yongmin.second << std::endl;
+                // std::cout << "before response BODY: " << yongmin.second << std::endl;
                 ResponseMessage responseMessage(yongmin);
                 inputView->sendResponseMessage(eventPair.first, responseMessage);
             //     consoleInputView.sendResponse(responseMessage);
