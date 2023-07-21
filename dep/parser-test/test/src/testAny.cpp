@@ -6,7 +6,7 @@
 #include <vector>
 
 int main() {
-	Dictionary anys;
+	HashMap anys;
 	anys.insert(std::make_pair("listen", new AnyType<int>(42)));
 
 	std::vector<std::string> hosts;

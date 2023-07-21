@@ -21,17 +21,21 @@ int main() {
 	int port = *serverConfig.at("listen");
 	std::string host = *serverConfig.at("host");
 
-	Dictionary locations = *serverConfig.at("location");
-	Dictionary pathLoc = *locations.at("/path");
+	HashMap locationMap = *serverConfig.at("location");
+	KeyList locations = locationMap.getKeys();
+	HashMap pathLoc = *locationMap.at("/path");
+	HashMap path2Loc = *locationMap.at("/path2");
+
 
 	std::cout << "PORT: " << port << std::endl;
 	std::cout << "HOST: " << host << std::endl;
-	for (Dictionary::const_iterator loc = locations.begin(); loc != locations.end(); ++loc) {
-		std::cout << "PATH: " << loc->first << std::endl;
-		Dictionary path = *loc->second;
-		for (Dictionary::const_iterator subTag = path.begin(); subTag != path.end(); ++subTag) {
+	std::cout << "LOC: " << locations.size() << std::endl;
+	for (HashMap::const_iterator loc = locationMap.begin(); loc != locationMap.end(); ++loc) {
+		std::cout << "\tPATH: " << loc->first << std::endl;
+		HashMap path = *loc->second;
+		for (HashMap::const_iterator subTag = path.begin(); subTag != path.end(); ++subTag) {
 			std::vector<std::string> value = *subTag->second;
-			std::cout << "SUBKEY: " << subTag->first;
+			std::cout << "\t\tSUBKEY: " << subTag->first;
 			for (std::vector<std::string>::const_iterator method = value.begin(); method != value.end(); ++method)
 			 	std::cout << " " << *method;
 			std::cout << std::endl;

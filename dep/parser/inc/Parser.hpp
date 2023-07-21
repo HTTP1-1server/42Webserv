@@ -8,7 +8,7 @@
 #include <string>
 #include "Any.hpp"
 
-typedef Dictionary Tags;
+typedef HashMap Tags;
 typedef void (FormatFunc)(std::istream &, const std::string *key, Tags &);
 typedef std::map<std::string, const FormatFunc *>	Formatters;
 
