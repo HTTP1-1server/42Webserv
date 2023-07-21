@@ -11,8 +11,8 @@
 
 int main() {
 	Parser parser;
-	parser.setFormat("listen", &ServerConfig::parseListenTag);
-	parser.setFormat("host", &ServerConfig::parseHostTag);
+	parser.setFormat("listen", &Parser::parseIntTag);
+	parser.setFormat("host", &Parser::parseStringTag);
 	parser.setFormat("location", &ServerConfig::parseLocationTag);
 	
 	std::ifstream file("default.conf");

@@ -59,6 +59,58 @@ public:
 			std::getline(stream, line);
 		}
 	}
+
+	static void parseIntTag(std::istream &stream, const std::string *key, Tags &tags) {
+		int port;
+        stream >> port;
+        if (stream.fail()) {
+            stream.clear();
+            throw std::runtime_error("parse error: " + *key);
+        }
+        Parser::skipLineEnd(stream);
+
+        tags[*key] = new AnyType<int>(port);
+	}
+
+	static void parseStringTag(std::istream &stream, const std::string *key, Tags &tags) {
+        std::string host;
+        stream >> host;
+        if (stream.fail() || host.empty()) {
+            stream.clear();
+            throw std::runtime_error("parse error: " + *key);
+        }
+        Parser::skipLineEnd(stream);
+        if (*host.rbegin() == ';')
+            host.resize(host.length() - 1);
+
+        tags[*key] = new AnyType<std::string>(host);
+    }
+	
+	static void parseVecOfStringTag(std::istream &stream, const std::string *key, Tags &tags) {
+        std::vector<std::string> methods;
+        std::string line;
+        std::getline(stream, line);
+        if (stream.fail()) {
+            stream.clear();
+            throw std::runtime_error("parse error: " + *key);
+        }
+        std::istringstream iss(line);
+        while (iss.good()) {
+            std::string method;
+            iss >> method;
+            if (iss.fail() || method.empty()) {
+                throw std::runtime_error("parse error: " + *key);
+            }
+            if (*method.rbegin() == ';')
+                method.resize(method.length() - 1);
+            if (method.empty())
+                throw std::runtime_error("parse error: " + *key);
+            methods.push_back(method);
+        }
+        if (methods.empty())
+            throw std::runtime_error("parse error: " + *key);
+        tags[*key] = new AnyType<std::vector<std::string> >(methods);
+    }
 };
 
 // #include "Parser.tpp"
