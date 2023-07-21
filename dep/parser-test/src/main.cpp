@@ -7,39 +7,34 @@
 #include <vector>
 #include <fstream>
 
-// typedef std::multimap<std::string, Data> ServerConfig;
-
-// template <typename ServerConfigs>
-// void parse(ServerConfigs serverConfigs) {
-//     for(typename ServerConfigs::iterator serverConfig = serverConfigs.begin();
-//         serverConfig != serverConfigs.end();
-//         ++serverConfig) {
-//         //std::cout << serverConfig << std::endl;
-//     }
-// }
+// std::map<std::string, Any *>
 
 int main() {
-	Parser<LocationConfig> locationParser;
-	locationParser.setTitledBlock<Parser::String>("location");
-	locationParser.setTag<Parser::List<std::string>>("allow_method");
+	Parser parser;
+	parser.setFormat("listen", &ServerConfig::parseListenTag);
+	parser.setFormat("host", &ServerConfig::parseHostTag);
+	parser.setFormat("location", &ServerConfig::parseLocationTag);
+	
+	std::ifstream file("default.conf");
+	ServerConfig serverConfig = (ServerConfig)parser.parse(file);
 
-	Parser<ServerConfig> parser;
-	parser.setUntitledBlock("server");
-	parser.setTag<Parser::Integer>("listen");
-	parser.setTag<Parser::List<std::string>>("host");
-	parser.setTag<Parser::List<std::string>>("seongspa");
-	// parser.setTag<(Parser::List<int>, Parser::String)>("error_page", ("code", "path"));
-	parser.setTag(locationParser);
-	parser.setCommentPrefix("#");
-	parser.setLineEndSuffix(";");
-	parser.setBlockBracket("{", "}");
-	parser.setDelemiters({" ", "\t"});
+	int port = *serverConfig.at("listen");
+	std::string host = *serverConfig.at("host");
 
-	std::string filename("default.conf");
-	std::ifstream file(filename);
-	ServerConfig serverConfig = parser.parse(file);
+	Dictionary locations = *serverConfig.at("location");
+	Dictionary pathLoc = *locations.at("/path");
 
-	int listen = serverConfig["listen"];
-	std::vector<std::string> host = serverConfig["host"];
-
+	std::cout << "PORT: " << port << std::endl;
+	std::cout << "HOST: " << host << std::endl;
+	for (Dictionary::const_iterator loc = locations.begin(); loc != locations.end(); ++loc) {
+		std::cout << "PATH: " << loc->first << std::endl;
+		Dictionary path = *loc->second;
+		for (Dictionary::const_iterator subTag = path.begin(); subTag != path.end(); ++subTag) {
+			std::vector<std::string> value = *subTag->second;
+			std::cout << "SUBKEY: " << subTag->first;
+			for (std::vector<std::string>::const_iterator method = value.begin(); method != value.end(); ++method)
+			 	std::cout << " " << *method;
+			std::cout << std::endl;
+		}
+	}
 }

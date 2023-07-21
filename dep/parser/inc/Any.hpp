@@ -16,7 +16,7 @@ public:
 template <typename T>
 class AnyType: public Any {
 public:
-	AnyType(const T& rhs): value(rhs) {}
+	AnyType(const T& rhs): value(rhs) {};
 	T value;
 };
 

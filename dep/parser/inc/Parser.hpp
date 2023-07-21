@@ -1,100 +1,64 @@
 #pragma once
 
 #include <map>
+#include <iostream>
 #include <sstream>
 #include <fstream>
 #include <vector>
+#include <string>
+#include "Any.hpp"
 
-enum Namability {
-	Titled,
-	Untitled,
-};
+typedef Dictionary Tags;
+typedef void (FormatFunc)(std::istream &, const std::string *key, Tags &);
+typedef std::map<std::string, const FormatFunc *>	Formatters;
 
-template <class T, Namability N = Untitled>
 class Parser {
 public:
-	Parser() {};
-	~Parser() {};
+	Parser(): blockEnd("}") {};
+	virtual ~Parser() {};
 
-	std::multimap<std::string, Parser> hm;
+	Formatters fomatters;
+	Tags tags;
 
-	T parse(std::istream & stream) const { return T();};
+	std::string blockEnd;
 
-	// template <class Value>
-	// void setNamedValue(std::string name) {
-	// 	hm.insert(std::make_pair(name, Value()));
-	// }
-};
-
-template <>
-class Parser<int> {
-public:
-	Parser() {};
-	~Parser() {};
-
-	int parse(std::istream &stream) const {
-		int value;
-		stream >> value;
-		if (stream.fail()) {
-			stream.clear();
-			throw std::runtime_error("Parse<int> error");
+	void setFormat(std::string key, FormatFunc *formatFunc) {
+		std::pair<Formatters::iterator, bool> insertion = fomatters.insert(std::make_pair(key, formatFunc));
+		bool isKeyDuplicated = !insertion.second;
+		if (isKeyDuplicated) {
+			throw std::runtime_error("Tried to set a format with a duplicated key");
 		}
-		return value;
-	};
-};
+	}
 
-template <>
-class Parser<std::string> {
-public:
-	Parser() {};
-	~Parser() {};
-
-	std::string parse(std::istream &stream) const {
-		std::string value;
-		stream >> value;
-		if (stream.fail()) {
-			stream.clear();
-			throw std::runtime_error("Parse<std::string> error");
-		}
-		return value;
-	};
-};
-
-template <class T>
-class Parser<std::vector<T> > {
-public:
-	Parser() {};
-	~Parser() {};
-
-	std::vector<T> parse(std::istream &stream) const {
-		std::vector<T>	values;
+	Tags parse(std::istream & stream) {
 		while (stream.good()) {
-			try {
-				T value = Parser<T>().parse(stream);
-				values.push_back(value);
-			} catch (std::exception &e) {
-				stream.clear();
-				if (values.size() == 0)
-					throw std::runtime_error("Parse<std::vector> error");
-				return values;
+			std::string key = this->extractKey(stream);
+			// std::cout << "KEY: " << key << std::endl;
+			if (key == blockEnd || key.empty()) {
+				break;
 			}
+			const FormatFunc *formatFunc = fomatters.at(key);
+			formatFunc(stream, &key, this->tags);
 		}
-		return values;
+		return this->tags;
 	};
+
+	std::string extractKey(std::istream &stream) {
+		std::string key;
+		stream >> key;
+		if (stream.fail()) {
+			stream.clear();
+			throw std::runtime_error("parse key error");
+		}
+		return key;
+	}
+
+	static void skipLineEnd(std::istream &stream) {
+		if (stream.good()) {
+			std::string line;
+			std::getline(stream, line);
+		}
+	}
 };
-
-template <class T1, class T2>
-class Parser<std::pair<T1, T2> > {
-public:
-	Parser() {};
-	~Parser() {};
-
-	std::pair<T1, T2> parse(std::istream &stream) const {
-		T1 value1 = Parser<T1>().parse(stream);
-		T2 value2 = Parser<T2>().parse(stream);
-		return std::make_pair(value1, value2);
-	};
-};
-
 
 // #include "Parser.tpp"
