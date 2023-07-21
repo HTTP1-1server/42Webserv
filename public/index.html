@@ -1,9 +1,58 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Welcome</title>
+    <meta charset="UTF-8">
+    <title>Index</title>
+    <style>
+		body {
+            background-color: #f874eb;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 100px;
+        }
+
+        h1 {
+            font-size: 48px;
+            color: #19e2f8;
+            margin-bottom: 30px;
+        }
+        .image {
+            display: inline-block;
+            margin: 10px;
+        }
+        .image img {
+            /* width: 800px;
+            height: 800px; */
+            object-fit: cover;
+        }
+    </style>
+	<script>
+		window.onload = function() {
+			fetch('/uploaded_image')
+			.then(response => response.json())
+			.then(data => {
+				const imagesDiv = document.getElementById('images');
+				for (let i = 0; i < data.length; i++) {
+					let img = document.createElement('img');
+					img.src = "/public/" + data[i];
+					img.alt = "Uploaded Image " + (i + 1);
+					imagesDiv.appendChild(img);
+				}
+			});
+		}
+	</script>
+
 </head>
 <body>
-    <h1>Welcome to my website!</h1>
+    <h1>사진을 추가해주세요!</h1>
+	<form action="/upload" method="post" enctype="multipart/form-data">
+		<input type="file" name="image">
+		<input type="submit" value="Upload">
+	</form>
+
+    <h1>Uploaded Images</h1>
+		<div id="images">
+			<!-- Images will be inserted here -->
+		</div>
 </body>
 </html>

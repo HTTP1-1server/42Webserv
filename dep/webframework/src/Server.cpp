@@ -34,7 +34,6 @@ Server::Server(const Port port) {
 
 	//accept the incoming connection
 	sockAddrLen = sizeof(sockAddr);
-	numClients = 0;
 }
 
 Server::~Server()
