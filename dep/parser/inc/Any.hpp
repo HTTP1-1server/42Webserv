@@ -1,11 +1,5 @@
 #pragma once
 
-#include <string>
-#include <map>
-#include <vector>
-
-typedef std::vector<std::string>		KeyList;
-
 class Any {
 public:
 	virtual ~Any() {};
@@ -22,14 +16,3 @@ public:
 template <class T> inline Any::operator T &() {
 	return dynamic_cast<AnyType<T>&>(*this).value;
 }
-
-class HashMap: public std::map<std::string, Any *> {
-public:
-	KeyList getKeys() const {
-		KeyList keys;
-		for (HashMap::const_iterator iter = this->begin(); iter != this->end(); ++iter) {
-			keys.push_back(iter->first);
-		}
-		return keys;
-	}
-};

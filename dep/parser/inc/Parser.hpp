@@ -6,7 +6,7 @@
 #include <fstream>
 #include <vector>
 #include <string>
-#include "Any.hpp"
+#include "HashMap.hpp"
 
 typedef HashMap Tags;
 typedef void (FormatFunc)(std::istream &, const std::string *key, Tags &);
@@ -33,7 +33,6 @@ public:
 	Tags parse(std::istream & stream) {
 		while (stream.good()) {
 			std::string key = this->extractKey(stream);
-			// std::cout << "KEY: " << key << std::endl;
 			if (key == blockEnd || key.empty()) {
 				break;
 			}
@@ -46,7 +45,8 @@ public:
 	std::string extractKey(std::istream &stream) {
 		std::string key;
 		stream >> key;
-		if (stream.fail()) {
+		// std::cout << "KEY: " << key << key.length() << std::endl;
+		if (stream.fail() && !stream.eof()) {
 			stream.clear();
 			throw std::runtime_error("parse key error");
 		}
@@ -69,7 +69,7 @@ public:
         }
         Parser::skipLineEnd(stream);
 
-        tags[*key] = new AnyType<int>(port);
+		tags.insert(std::make_pair(*key, UniquePtr<Any>(AnyType<int>(port))));
 	}
 
 	static void parseStringTag(std::istream &stream, const std::string *key, Tags &tags) {
@@ -83,7 +83,7 @@ public:
         if (*host.rbegin() == ';')
             host.resize(host.length() - 1);
 
-        tags[*key] = new AnyType<std::string>(host);
+        tags.insert(std::make_pair(*key, UniquePtr<Any>(AnyType<std::string>(host))));
     }
 	
 	static void parseVecOfStringTag(std::istream &stream, const std::string *key, Tags &tags) {
@@ -109,7 +109,8 @@ public:
         }
         if (methods.empty())
             throw std::runtime_error("parse error: " + *key);
-        tags[*key] = new AnyType<std::vector<std::string> >(methods);
+
+        tags.insert(std::make_pair(*key, UniquePtr<Any>(AnyType<std::vector<std::string> >(methods))));
     }
 };
 
