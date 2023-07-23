@@ -25,10 +25,14 @@ int main() {
 		HashMap pathLoc = *locationMap.at("/path").data;
 		HashMap path2Loc = *locationMap.at("/path2").data;
 
+		std::map<int, std::string> errors = *serverConfig->at("error_page").data;
 
 		std::cout << "PORT: " << port << std::endl;
 		std::cout << "HOST: " << host << std::endl;
-		std::cout << "LOC: " << locations.size() << std::endl;
+		std::cout << "LOC: ";
+		for (KeyList::const_iterator loc = locations.begin(); loc != locations.end(); ++loc)
+			std::cout << *loc << " ";
+		std::cout << std::endl;
 		for (HashMap::const_iterator loc = locationMap.begin(); loc != locationMap.end(); ++loc) {
 			std::cout << "\tPATH: " << loc->first << std::endl;
 			HashMap path = *loc->second.data;
@@ -39,6 +43,9 @@ int main() {
 					std::cout << " " << *method;
 				std::cout << std::endl;
 			}
+		}
+		for (std::map<int, std::string>::const_iterator error = errors.begin(); error != errors.end(); ++error) {
+			std::cout << "ERROR: " << error->first << " " << error->second << std::endl;
 		}
 	}
 }
