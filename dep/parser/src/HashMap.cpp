@@ -1,4 +1,5 @@
 #include "HashMap.hpp"
+#include <stdexcept>
 
 KeyList HashMap::getKeys() const {
 	KeyList keys;

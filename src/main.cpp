@@ -1,4 +1,5 @@
 #include <vector>
+#include <stdexcept>
 #include "Server.hpp"
 #include "ServerController.hpp"
 
@@ -23,7 +24,7 @@ std::vector<ServerConfig> parseConfiguration(const std::string &filename) {
     Parser parser;
 	parser.setFormat("server", &ServerConfig::parseServerBlock);
 	
-	std::ifstream file(filename);
+	std::ifstream file(filename.c_str());
 	HashMap serverList = (HashMap)parser.parse(file);
 
 	std::vector<ServerConfig> serverConfigs = *serverList.at("server").data;
