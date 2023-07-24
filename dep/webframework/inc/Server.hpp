@@ -6,6 +6,7 @@
 #include <sys/time.h> //FD_SET, FD_ISSET, FD_ZERO macros 
 #include <sys/types.h>
 #include <unistd.h>
+#include "ServerConfig.hpp"
 
 #define MAX_CLIENTS (30)
 
@@ -22,13 +23,14 @@ typedef struct sockaddr_in  SocketAddr;
 class Server {
 private:
     int numClients;
+    const ServerConfig &config;
 
 public:
     ListenSd listenSd;
     SocketAddr sockAddr;
     int sockAddrLen;
     
-    Server(const Port port);
+    Server(const ServerConfig &config);
     ~Server();
 
     ListenSd getListenSd() const;

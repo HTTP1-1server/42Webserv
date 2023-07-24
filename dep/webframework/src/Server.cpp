@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <fcntl.h>
 
-Server::Server(const Port port) {
+Server::Server(const ServerConfig &config): config(config) {
 	//create a master socket
 	if ((listenSd = socket(AF_INET , SOCK_STREAM , 0)) == 0)
 		throw SocketCreationException();
@@ -18,6 +18,7 @@ Server::Server(const Port port) {
 		sizeof(opt)) < 0)
 		throw SocketOptionException();
 
+	int port = *config.at("listen").data;
 	//type of socket created
 	memset(&sockAddr, 0, sizeof(sockAddr));
 	sockAddr.sin_family = AF_INET;
@@ -35,6 +36,7 @@ Server::Server(const Port port) {
 	//accept the incoming connection
 	sockAddrLen = sizeof(sockAddr);
 	numClients = 0;
+
 }
 
 Server::~Server()

@@ -13,9 +13,9 @@ int main(int argc , char *argv[])
 		throw std::runtime_error("arguments error");
 
 	std::string filename = argv[1] == NULL ? std::string(DEFAULT_FILENAME) : std::string(argv[1]);
-	std::vector<ServerConfig> serverConfig = parseConfiguration(filename);
+	std::vector<ServerConfig> serverConfigs = parseConfiguration(filename);
 
-    ServerController serverController(serverConfig);
+    ServerController serverController(serverConfigs);
     serverController.run();
     return 0;
 }

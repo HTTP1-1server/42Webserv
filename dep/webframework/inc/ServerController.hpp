@@ -31,8 +31,7 @@ public:
 
 ServerController::ServerController(const std::vector<ServerConfig> &configs): multiplexer(new SelectMultiplexer()), inputView(new ConsoleInputView()) {
     for (std::vector<ServerConfig>::const_iterator conf = configs.begin(); conf != configs.end(); ++conf) {
-        int port = *conf->at("listen").data;
-        servers.push_back(Server(port));
+        servers.push_back(Server(*conf));
     }
 }
 
