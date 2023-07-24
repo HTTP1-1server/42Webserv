@@ -23,9 +23,8 @@ typedef struct sockaddr_in  SocketAddr;
 
 class Server {
 private:
-    const ServerConfig &config;
-
 public:
+    const ServerConfig &config;
     ListenSd listenSd;
     SocketAddr sockAddr;
     int sockAddrLen;

@@ -34,17 +34,19 @@ public:
     HttpResponseHandler() {};
     ~HttpResponseHandler() {};
     std::pair<Code, Body> processResponse(RequestInfo requestMessage) {
+
 		std::string requestURL = requestMessage.url;
 		std::string requestMethod = requestMessage.method;
 
-		std::vector<char> requstBody = requestMessage.dody;
-		std::string startBoundary = requestMessage.boundary;
-		std::string endBoundary = "--" + startBoundary + "--";
 
+		// // 바디에서 image 꺼내는데 쓰이는 변수
+		// std::vector<char> requstBody = requestMessage.dody;
+		// std::string startBoundary = requestMessage.boundary;
+		// std::string endBoundary = "--" + startBoundary + "--";
+		// std::vector<char> removedBoundary = removeBoundary(requstBody, startBoundary);
+		// std::vector<char> perfectImage = removeTrailingBoundary(removedBoundary, endBoundary);
 
-		std::vector<char> removedBoundary = removeBoundary(requstBody, startBoundary);
-		std::vector<char> perfectImage = removeTrailingBoundary(removedBoundary, endBoundary);
-		std::cout << perfectImage.size() << std::endl;
+		/* 이미지 파일 체크 테스트
 
 		if (startBoundary.length() != 0) {
 			sout("startBoundary = " + startBoundary);
@@ -65,26 +67,13 @@ public:
 			}
 			std::cout << "++++++++++++++++++++++++++++++++end+++++++++++++++++++++++++++++++++++++" << std::endl;
 		}
+		*/
 
-        std::time_t t2 = std::time(0);
-        std::stringstream sss;
-        sss << "public/perfectImage" << t2 << ".png";
-
-		// std::fstream fs(sss.str().c_str(), std::ios::binary | std::ios::out);
-        int fd = open(sss.str().c_str(), O_CREAT | O_WRONLY, 777);
-        write(fd, perfectImage.data(), perfectImage.size());
-		// fs.write(perfectImage.data(), perfectImage.size());
-        close(fd);
-		// fs.close();
-
-		// sout("");
-		// sout("Request URL = " + requestURL);
-		// sout("Request Method = " + requestMethod);
-		// sout("Request Body\n%s" + requstBody);
-		// sout("--------------------------------------end of body\n\n\n\n");
-		// sout("");
+		makeImageFile(requestMessage.requestBody);
 
 		db = "public";
+
+		/* 만들 것
 		// chooseMethod(requestMessage);
         // 0. parse message -> memberValue
 
@@ -100,12 +89,24 @@ public:
         //  DELETE(image)
 
         // 2. method exec
+		*/
+		
 		if (requestMessage.url == "/") {
 			fileName = db + "/index.html";
 		}
-		// sout("fileName is " + fileName);
+		
         return staticWebpage(fileName);
     };
+
+	void makeImageFile(std::vector<char> perfectImage) {
+        std::time_t t2 = std::time(0);
+        std::stringstream sss;
+        sss << "public/downloaded_image/perfectImage" << t2 << ".png";
+
+        int fd = open(sss.str().c_str(), O_CREAT | O_WRONLY, 777);
+        write(fd, perfectImage.data(), perfectImage.size());
+        close(fd);
+	}
 
 	std::pair<Code, Body> staticWebpage(std::string filename) {
 		std::string filename2 = filename;
@@ -168,103 +169,102 @@ public:
 	// 	return false;
 	// }
 
-	std::string parseMultipart(std::string input) {
-		std::string boundary = input.substr(0, input.find("\r\n"));
-		size_t start = input.find(boundary) + boundary.length() + 2;
-		size_t end = input.find(boundary, start);
-		return input.substr(start, end - start);
-	}
+	// std::string parseMultipart(std::string input) {
+	// 	std::string boundary = input.substr(0, input.find("\r\n"));
+	// 	size_t start = input.find(boundary) + boundary.length() + 2;
+	// 	size_t end = input.find(boundary, start);
+	// 	return input.substr(start, end - start);
+	// }
 
-	std::string makeRandomName() {
-		std::time_t t = std::time(0);
-        std::stringstream ss;
-        ss << "/uploaded_image_" << t << ".jpg";
-		return ss.str();
-	}
+	// std::string makeRandomName() {
+	// 	std::time_t t = std::time(0);
+    //     std::stringstream ss;
+    //     ss << "/uploaded_image_" << t << ".jpg";
+	// 	return ss.str();
+	// }
 
-	void saveFile(std::string fileData, std::string filePath) {
-		std::ofstream outFile(filePath.c_str(), std::ios::binary);
-		if (outFile.is_open()) {
-			outFile << fileData;
-			outFile.close();
-			std::cout << "File has been saved to " << filePath << std::endl;
-		} else {
-			std::cout << "Failed to open file for writing: " << filePath << std::endl;
-		}
-	}
+	// void saveFile(std::string fileData, std::string filePath) {
+	// 	std::ofstream outFile(filePath.c_str(), std::ios::binary);
+	// 	if (outFile.is_open()) {
+	// 		outFile << fileData;
+	// 		outFile.close();
+	// 		std::cout << "File has been saved to " << filePath << std::endl;
+	// 	} else {
+	// 		std::cout << "Failed to open file for writing: " << filePath << std::endl;
+	// 	}
+	// }
 
-	bool fileExists(std::string fileName)
-	{
-		std::ifstream infile(fileName);
-		return infile.good();
-	}
+	// bool fileExists(std::string fileName)
+	// {
+	// 	std::ifstream infile(fileName);
+	// 	return infile.good();
+	// }
 
-	void sout(std::string input) {
-		std::cout << input << std::endl;
-	}
+	// void sout(std::string input) {
+	// 	std::cout << input << std::endl;
+	// }
 
-	std::vector<char> removeBoundary(const std::vector<char>& inputData, const std::string& boundary) {
-		std::vector<char> result;
+	// std::vector<char> removeBoundary(const std::vector<char>& inputData, const std::string& boundary) {
+	// 	std::vector<char> result;
 
-		// Convert the boundary string to bytes
-		std::vector<char> boundaryBytes;
-		for (std::size_t i = 0; i < boundary.size(); ++i) {
-			boundaryBytes.push_back(boundary[i]);
-		}
+	// 	// Convert the boundary string to bytes
+	// 	std::vector<char> boundaryBytes;
+	// 	for (std::size_t i = 0; i < boundary.size(); ++i) {
+	// 		boundaryBytes.push_back(boundary[i]);
+	// 	}
 
-		// Find the position of the boundary in the input data
-		std::vector<char>::const_iterator startIt = inputData.begin();
-		while (true) {
-			startIt = std::search(startIt, inputData.end(), boundaryBytes.begin(), boundaryBytes.end());
-			if (startIt == inputData.end()) {
-				break; // Boundary not found, exit loop
-			}
+	// 	// Find the position of the boundary in the input data
+	// 	std::vector<char>::const_iterator startIt = inputData.begin();
+	// 	while (true) {
+	// 		startIt = std::search(startIt, inputData.end(), boundaryBytes.begin(), boundaryBytes.end());
+	// 		if (startIt == inputData.end()) {
+	// 			break; // Boundary not found, exit loop
+	// 		}
 
-			// Calculate the position where the headers end and image data starts
-			std::vector<char>::const_iterator imageDataStart = startIt + boundaryBytes.size();
-			bool headersFound = false;
-			while (imageDataStart != inputData.end()) {
-				if (*imageDataStart == '\r' && imageDataStart + 3 != inputData.end() &&
-					*(imageDataStart + 1) == '\n' && *(imageDataStart + 2) == '\r' && *(imageDataStart + 3) == '\n') {
-					headersFound = true;
-					break;
-				}
-				++imageDataStart;
-			}
+	// 		// Calculate the position where the headers end and image data starts
+	// 		std::vector<char>::const_iterator imageDataStart = startIt + boundaryBytes.size();
+	// 		bool headersFound = false;
+	// 		while (imageDataStart != inputData.end()) {
+	// 			if (*imageDataStart == '\r' && imageDataStart + 3 != inputData.end() &&
+	// 				*(imageDataStart + 1) == '\n' && *(imageDataStart + 2) == '\r' && *(imageDataStart + 3) == '\n') {
+	// 				headersFound = true;
+	// 				break;
+	// 			}
+	// 			++imageDataStart;
+	// 		}
 
-			if (!headersFound) {
-				break; // Headers not found, exit loop
-			}
+	// 		if (!headersFound) {
+	// 			break; // Headers not found, exit loop
+	// 		}
 
-			// Add the image data after the headers
-			result.insert(result.end(), imageDataStart + 4, inputData.end());
+	// 		// Add the image data after the headers
+	// 		result.insert(result.end(), imageDataStart + 4, inputData.end());
 
-			// Move the iterator to search for the next boundary
-			startIt = imageDataStart + 4;
-		}
+	// 		// Move the iterator to search for the next boundary
+	// 		startIt = imageDataStart + 4;
+	// 	}
 
-		return result;
-	}
+	// 	return result;
+	// }
 
-	std::vector<char> removeTrailingBoundary(const std::vector<char>& inputData, const std::string& boundary) {
-		std::vector<char> result = inputData;
+	// std::vector<char> removeTrailingBoundary(const std::vector<char>& inputData, const std::string& boundary) {
+	// 	std::vector<char> result = inputData;
 
-		// Convert the boundary string to bytes
-		std::vector<char> boundaryBytes;
-		for (std::size_t i = 0; i < boundary.size(); ++i) {
-			boundaryBytes.push_back(boundary[i]);
-		}
+	// 	// Convert the boundary string to bytes
+	// 	std::vector<char> boundaryBytes;
+	// 	for (std::size_t i = 0; i < boundary.size(); ++i) {
+	// 		boundaryBytes.push_back(boundary[i]);
+	// 	}
 
-		// Find the position of the trailing boundary in the result data
-		std::vector<char>::const_iterator trailingBoundaryStart = std::search(result.begin(), result.end(), boundaryBytes.begin(), boundaryBytes.end());
-		if (trailingBoundaryStart != result.end()) {
-			// Erase everything after the trailing boundary
-			result.erase(trailingBoundaryStart, result.end());
-		}
+	// 	// Find the position of the trailing boundary in the result data
+	// 	std::vector<char>::const_iterator trailingBoundaryStart = std::search(result.begin(), result.end(), boundaryBytes.begin(), boundaryBytes.end());
+	// 	if (trailingBoundaryStart != result.end()) {
+	// 		// Erase everything after the trailing boundary
+	// 		result.erase(trailingBoundaryStart, result.end());
+	// 	}
 
-		return result;
-	}
-
+	// 	return result;
+	// }
 };
 
 ResponseHandler *generate(std::string protol) {

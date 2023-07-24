@@ -61,7 +61,7 @@ Connection: close\r\n\
                 // std::stringstream ss;
                 // ss << "public/new_file" << t << ".jpg";
                 // std::fstream fs(ss.str(), std::ios::binary | std::ios::out);
-                // fs.write(buffer, sizeof(buffer)); 	
+                // fs.write(buffer, sizeof(buffer));
                 // fs.close();
 
                 RequestMessage requestMessage(buffer, buffer + n);
