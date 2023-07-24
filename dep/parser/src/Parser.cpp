@@ -8,7 +8,7 @@ void Parser::setFormat(std::string key, FormatFunc *formatFunc) {
 	}
 }
 
-Tags Parser::parse(std::istream & stream) {
+HashMap Parser::parse(std::istream & stream) {
 	while (stream.good()) {
 		std::string key = this->extractKey(stream);
 		if (key == blockEnd || key.empty()) {
@@ -38,7 +38,7 @@ void Parser::skipLineEnd(std::istream &stream) {
 	}
 }
 
-void Parser::parseIntTag(std::istream &stream, const std::string *key, Tags &tags) {
+void Parser::parseIntTag(std::istream &stream, const std::string *key, HashMap &tags) {
 	int port;
 	stream >> port;
 	if (stream.fail()) {
@@ -50,7 +50,7 @@ void Parser::parseIntTag(std::istream &stream, const std::string *key, Tags &tag
 	tags.insert(std::make_pair(*key, UniquePtr<Any>(AnyType<int>(port))));
 }
 
-void Parser::parseStringTag(std::istream &stream, const std::string *key, Tags &tags) {
+void Parser::parseStringTag(std::istream &stream, const std::string *key, HashMap &tags) {
 	std::string host;
 	stream >> host;
 	if (stream.fail() || host.empty()) {
@@ -64,7 +64,7 @@ void Parser::parseStringTag(std::istream &stream, const std::string *key, Tags &
 	tags.insert(std::make_pair(*key, UniquePtr<Any>(AnyType<std::string>(host))));
 }
 
-void Parser::parseVecOfStringTag(std::istream &stream, const std::string *key, Tags &tags) {
+void Parser::parseVecOfStringTag(std::istream &stream, const std::string *key, HashMap &tags) {
 	std::vector<std::string> methods;
 	std::string line;
 	std::getline(stream, line);

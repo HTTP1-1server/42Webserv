@@ -1,6 +1,6 @@
 #include "ServerConfig.hpp"
 
-void ServerConfig::parseLocationTag(std::istream &stream, const std::string *key, Tags &tags) {
+void ServerConfig::parseLocationTag(std::istream &stream, const std::string *key, HashMap &tags) {
 	std::string path;
 	stream >> path;
 	if (stream.fail() || path.empty()) {
@@ -9,18 +9,18 @@ void ServerConfig::parseLocationTag(std::istream &stream, const std::string *key
 	}
 	Parser::skipLineEnd(stream);
 
-	UniquePtr<Any> locationGroup = UniquePtr<Any>(AnyType<Tags>(Tags()));
-	std::pair<Tags::iterator, bool> insertion = tags.insert(std::make_pair(*key, locationGroup));
+	UniquePtr<Any> locationGroup = UniquePtr<Any>(AnyType<HashMap>(HashMap()));
+	std::pair<HashMap::iterator, bool> insertion = tags.insert(std::make_pair(*key, locationGroup));
 
-	Tags &locations = (Tags &)*insertion.first->second.data;
+	HashMap &locations = (HashMap &)*insertion.first->second.data;
 	
 	Parser locationParser;
 	locationParser.setFormat("allowed_methods", &Parser::parseVecOfStringTag);
 
-	locations.insert(std::make_pair(path, UniquePtr<Any>(AnyType<Tags>(locationParser.parse(stream)))));
+	locations.insert(std::make_pair(path, UniquePtr<Any>(AnyType<HashMap>(locationParser.parse(stream)))));
 }
 
-void ServerConfig::parseErrorTag(std::istream &stream, const std::string *key, Tags &tags) {
+void ServerConfig::parseErrorTag(std::istream &stream, const std::string *key, HashMap &tags) {
 	std::vector<std::string> errorCodeAndPath;
 	std::string line;
 	std::getline(stream, line);
@@ -45,7 +45,7 @@ void ServerConfig::parseErrorTag(std::istream &stream, const std::string *key, T
 		throw std::runtime_error("parse error: " + *key);
 
 	UniquePtr<Any> errorGroup = UniquePtr<Any>(AnyType<std::map<int, std::string> >(std::map<int, std::string>()));
-	std::pair<Tags::iterator, bool> insertion = tags.insert(std::make_pair(*key, errorGroup));
+	std::pair<HashMap::iterator, bool> insertion = tags.insert(std::make_pair(*key, errorGroup));
 
 	std::map<int, std::string> &errors = (std::map<int, std::string> &)*insertion.first->second.data;
 
@@ -58,9 +58,9 @@ void ServerConfig::parseErrorTag(std::istream &stream, const std::string *key, T
 	}
 }
 
-ServerConfig::ServerConfig(const Tags &other): Tags(other) {};
+ServerConfig::ServerConfig(const HashMap &other): HashMap(other) {};
 
-void ServerConfig::parseServerBlock(std::istream &stream, const std::string *key, Tags &tags) {
+void ServerConfig::parseServerBlock(std::istream &stream, const std::string *key, HashMap &tags) {
 	std::string server;
 	stream >> server;
 	if (stream.fail() || server.empty()) {
@@ -70,7 +70,7 @@ void ServerConfig::parseServerBlock(std::istream &stream, const std::string *key
 	Parser::skipLineEnd(stream);
 
 	UniquePtr<Any> serverGroup = UniquePtr<Any>(AnyType<std::vector<ServerConfig> >(std::vector<ServerConfig>()));
-	std::pair<Tags::iterator, bool> insertion = tags.insert(std::make_pair(*key, serverGroup));
+	std::pair<HashMap::iterator, bool> insertion = tags.insert(std::make_pair(*key, serverGroup));
 
 	std::vector<ServerConfig> &servers = (std::vector<ServerConfig> &)*insertion.first->second.data;
 

@@ -31,7 +31,7 @@ CFLAGS		:=	-std=c++98 -Wall -Wextra -Werror
 TARGET		:=	$(suffix $(NAME))
 CEXT		:=	cpp
 OEXT		:=	o
-INC			:=	-I$(INCDIR) $(addprefix -I$(DEPDIR)/, $(DEPDIRS))
+INC			:=	-I$(INCDIR) $(addsuffix /$(INCDIR), $(addprefix -I$(DEPDIR)/, $(DEPDIRS)))
 LIB			:=	$(addprefix -l, $(DEPLIBS))
 LID			:=	$(addprefix -L$(DEPDIR)/, $(DEPDIRS))
 SRCS		:=	$(addprefix $(SRCDIR)/,$(SOURCES))

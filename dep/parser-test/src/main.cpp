@@ -26,6 +26,7 @@ int main() {
 		HashMap path2Loc = *locationMap.at("/path2").data;
 
 		std::map<int, std::string> errors = *serverConfig->at("error_page").data;
+		// std::map<int, std::string> es = *serverConfig->at("error_pag").data;
 
 		std::cout << "PORT: " << port << std::endl;
 		std::cout << "HOST: " << host << std::endl;
