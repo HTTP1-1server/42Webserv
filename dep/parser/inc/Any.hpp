@@ -5,9 +5,7 @@ public:
 	virtual ~Any() {};
 	template <class T> operator T&();
 };
-
-template <typename T>
-class AnyType: public Any {
+template <typename T> class AnyType: public Any {
 public:
 	AnyType(const T& rhs): value(rhs) {};
 	T value;

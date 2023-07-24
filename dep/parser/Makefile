@@ -3,7 +3,8 @@
 NAME		:=	libparser.a
 
 #Source Files
-SOURCES		:=	
+SOURCES		:=	HashMap.cpp \
+				Parser.cpp \
 
 #The Directories, Source, Includes, Dependencies
 TESTDIR		:=	test
