@@ -7,3 +7,11 @@ KeyList HashMap::getKeys() const {
 	}
 	return keys;
 }
+
+const UniquePtr<Any> &HashMap::at(std::string key) const {
+	try {
+		return std::map<std::string, UniquePtr<Any> >::at(key);
+	} catch(const std::exception& e) {
+		throw std::runtime_error("key not found: \"" + key + "\"");
+	}
+}

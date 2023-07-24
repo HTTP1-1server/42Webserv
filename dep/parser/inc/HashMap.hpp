@@ -11,4 +11,5 @@ typedef std::vector<std::string> KeyList;
 class HashMap: public std::map<std::string, UniquePtr<Any> > {
 public:
 	KeyList getKeys() const;
+	const UniquePtr<Any> &at(std::string key) const;
 };
