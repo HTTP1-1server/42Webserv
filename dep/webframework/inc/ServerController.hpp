@@ -11,6 +11,7 @@
 #include "utils/ResponseHandler.hpp"
 #include "RequestInfo.hpp"
 #include "ResponseMessage.hpp"
+#include "ServerConfig.hpp"
 
 typedef int ConnectSd;
 
@@ -22,17 +23,16 @@ private:
 
     
 public:
-    ServerController(const std::vector<Port> &ports);
+    ServerController(const std::vector<ServerConfig> &configs);
     ~ServerController();
 
     void run();
 };
 
-ServerController::ServerController(const std::vector<Port> &ports): multiplexer(new SelectMultiplexer()), inputView(new ConsoleInputView()) {
-    servers.clear();
-    servers.reserve(ports.size());
-    for (std::vector<Port>::const_iterator port = ports.begin(); port != ports.end(); ++port) {
-        servers.push_back(Server(*port));
+ServerController::ServerController(const std::vector<ServerConfig> &configs): multiplexer(new SelectMultiplexer()), inputView(new ConsoleInputView()) {
+    for (std::vector<ServerConfig>::const_iterator conf = configs.begin(); conf != configs.end(); ++conf) {
+        int port = *conf->at("listen").data;
+        servers.push_back(Server(port));
     }
 }
 

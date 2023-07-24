@@ -14,8 +14,8 @@ DEPDIR		:=	dep
 BLDDIR		:=	obj
 
 #Dependencies
-DEPLIBS		:=	webframework
-DEPDIRS		:=	webframework
+DEPLIBS		:=	webframework parser
+DEPDIRS		:=	webframework parser
 
 #Compiler, Linker, Flags
 CC			:=	c++
@@ -29,7 +29,7 @@ CFLAGS		:=	-std=c++98 # -Wall -Wextra -Werror
 TARGET		:=	$(suffix $(NAME))
 CEXT		:=	cpp
 OEXT		:=	o
-INC			:=	-I$(INCDIR) $(addprefix -I$(DEPDIR)/, $(DEPDIRS)/$(INCDIR))
+INC			:=	-I$(INCDIR) $(addsuffix /$(INCDIR), $(addprefix -I$(DEPDIR)/, $(DEPDIRS)))
 LIB			:=	$(addprefix -l, $(DEPLIBS))
 LID			:=	$(addprefix -L$(DEPDIR)/, $(DEPDIRS))
 SRCS		:=	$(addprefix $(SRCDIR)/,$(SOURCES))

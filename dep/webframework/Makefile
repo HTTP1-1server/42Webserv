@@ -6,18 +6,19 @@ NAME		:=	libwebframework.a
 SOURCES		:=	Server.cpp \
 				ServerController.cpp \
 				Multiplexer.cpp \
+				ServerConfig.cpp \
 
 #The Directories, Source, Includes, Dependencies
 TESTDIR		:=	test
 BONUSDIR	:=	bonus
 SRCDIR		:=	src
 INCDIR		:=	inc
-DEPDIR		:=	dep
+DEPDIR		:=	..
 BLDDIR		:=	obj
 
 #Dependencies
-DEPLIBS		:=	
-DEPDIRS		:=	
+DEPLIBS		:=	parser
+DEPDIRS		:=	parser
 
 #Compiler, Linker, Flags
 CC			:=	c++

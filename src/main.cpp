@@ -1,20 +1,31 @@
 #include <vector>
 #include "Server.hpp"
 #include "ServerController.hpp"
-     
-#define TRUE   1 
-#define FALSE  0 
-#define PORT 8888 
 
-static int count;
+#define DEFAULT_FILENAME ("default.conf")
+
+std::vector<ServerConfig> parseConfiguration(const std::string &filename);
 
 int main(int argc , char *argv[])  
-{  
-    std::vector<Port> ports;
-    ports.push_back(PORT);
-    ports.push_back(PORT + 1);
+{
+	if (argv == NULL || argc < 1)
+		throw std::runtime_error("arguments error");
 
-    ServerController serverController(ports);
+	std::string filename = argv[1] == NULL ? std::string(DEFAULT_FILENAME) : std::string(argv[1]);
+	std::vector<ServerConfig> serverConfig = parseConfiguration(filename);
+
+    ServerController serverController(serverConfig);
     serverController.run();
     return 0;
+}
+
+std::vector<ServerConfig> parseConfiguration(const std::string &filename) {
+    Parser parser;
+	parser.setFormat("server", &ServerConfig::parseServerBlock);
+	
+	std::ifstream file(filename);
+	HashMap serverList = (HashMap)parser.parse(file);
+
+	std::vector<ServerConfig> serverConfigs = *serverList.at("server").data;
+	return serverConfigs;
 }

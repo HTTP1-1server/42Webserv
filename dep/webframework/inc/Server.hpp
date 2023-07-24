@@ -21,8 +21,6 @@ typedef struct sockaddr_in  SocketAddr;
 
 class Server {
 private:
-    fd_set readFds;
-    int clientSockets[MAX_CLIENTS];
     int numClients;
 
 public:

@@ -49,7 +49,7 @@ Connection: close\r\n\
 
 	for (ClientSocketInfo::iterator iter = this->clientSocketInfo.begin(); iter != this->clientSocketInfo.end(); ++iter) {
 		if (FD_ISSET(iter->first, &readFds)) {
-			if ((n=	recv(iter->first, buffer, sizeof(buffer), MSG_DONTWAIT)) != 0) {
+			if ((n=	recv(iter->first, buffer, sizeof(buffer) - 1, MSG_DONTWAIT)) != 0) {
 				buffer[n] = '\0';
 				printf("receive - [%s]\n", buffer);
 				iter->second.append(buffer);
