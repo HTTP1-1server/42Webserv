@@ -5,7 +5,7 @@ NAME		:=	libwebframework.a
 #Source Files
 SOURCES		:=	Server.cpp \
 				ServerController.cpp \
-				Multiplexer.cpp \
+				SocketManager.cpp \
 				ServerConfig.cpp \
 
 #The Directories, Source, Includes, Dependencies

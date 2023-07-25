@@ -1,20 +1,20 @@
-#include "Multiplexer.hpp"
+#include "SocketManager.hpp"
 #include <iostream>
 #include <fstream>
 #include <sstream>
 
-std::pair<ConnectSd, RequestMessage> SelectMultiplexer::detectEvent(ListenSd listenSd, struct sockaddr *sockAddr, socklen_t *sockAddrLen)
+SocketDetail SelectSocketManager::getSocketDetail(ListenSd listenSd, struct sockaddr *sockAddr, socklen_t *sockAddrLen)
 {
     int maxSd = listenSd;
 
-    for (ClientSocketInfo::const_iterator iter = this->clientSocketInfo.begin(); iter != this->clientSocketInfo.end(); ++iter)
+    for (SocketDetails::const_iterator iter = this->clientSockets.begin(); iter != this->clientSockets.end(); ++iter)
         if (iter->first > maxSd)
             maxSd = iter->first;
 
     FD_ZERO(&readFds);
     FD_SET(listenSd, &readFds);
 
-    for (ClientSocketInfo::const_iterator iter = this->clientSocketInfo.begin(); iter != this->clientSocketInfo.end(); ++iter)
+    for (SocketDetails::const_iterator iter = this->clientSockets.begin(); iter != this->clientSockets.end(); ++iter)
         FD_SET(iter->first, &readFds);
 
     struct timeval tv = {0, 0};
@@ -27,7 +27,7 @@ std::pair<ConnectSd, RequestMessage> SelectMultiplexer::detectEvent(ListenSd lis
                     printf("Failed to change the socket to non-blocking\n");
                     close(connectSd);
                 } else {
-                    clientSocketInfo.insert(std::make_pair(connectSd, RequestMessage()));
+                    clientSockets.insert(std::make_pair(connectSd, RequestMessage()));
                 }
             }
         }
@@ -36,7 +36,7 @@ std::pair<ConnectSd, RequestMessage> SelectMultiplexer::detectEvent(ListenSd lis
     char buffer[10];
     int n;
 
-    for (ClientSocketInfo::iterator iter = this->clientSocketInfo.begin(); iter != this->clientSocketInfo.end(); ++iter) {
+    for (SocketDetails::iterator iter = this->clientSockets.begin(); iter != this->clientSockets.end(); ++iter) {
         if (FD_ISSET(iter->first, &readFds)) {
             if ((n = recv(iter->first, buffer, sizeof(buffer) - 1, MSG_DONTWAIT)) != 0) {
                 buffer[n] = '\0';
@@ -47,9 +47,14 @@ std::pair<ConnectSd, RequestMessage> SelectMultiplexer::detectEvent(ListenSd lis
             ConnectSd connectSd = iter->first;
             RequestMessage requestMessage = iter->second;
             requestMessage.push_back('\0');
-            clientSocketInfo.erase(iter);
+            clientSockets.erase(iter);
             return std::make_pair(connectSd, requestMessage);
         }
     }
     return std::make_pair(-1, RequestMessage());
 }
+
+void SelectSocketManager::sendResponseMessage(int connectSd, ResponseMessage &responseMessage) const {
+	send(connectSd, responseMessage.c_str(), responseMessage.length(), MSG_DONTWAIT);
+	close(connectSd);
+};

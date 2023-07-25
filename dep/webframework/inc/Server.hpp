@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Types.hpp"
+
 #include <sys/socket.h>
 #include <exception>
 #include <netinet/in.h> // htons
@@ -8,14 +10,6 @@
 #include <unistd.h>
 #include "ServerConfig.hpp"
 #include <vector>
-
-#define MAX_CLIENTS (30)
-
-enum IoMultiplex {
-    Select,
-    Epoll,
-    Kqueue,
-};
 
 typedef int                 Port;
 typedef int                 ListenSd;

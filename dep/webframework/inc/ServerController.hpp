@@ -1,26 +1,23 @@
 #pragma once
 
+#include "Types.hpp"
+
 #include <vector>
 #include <stdio.h>
 #include <cstring>
 #include <string>
 #include "Server.hpp"
-#include "Multiplexer.hpp"
-#include "InputView.hpp"
-#include "ResponseMessage.hpp"
-#include "utils/ResponseHandler.hpp"
-#include "RequestInfo.hpp"
+#include "SocketManager.hpp"
+#include "utils/RequestHandler.hpp"
+#include "Request.hpp"
 #include "ResponseMessage.hpp"
 #include "ServerConfig.hpp"
 
-typedef int ConnectSd;
 
 class ServerController {
 private:
     std::vector<Server> servers;
-    Multiplexer *multiplexer;
-    const InputView *inputView;
-
+    SocketManager *socketManager;
     
 public:
     ServerController(const std::vector<ServerConfig> &configs);
@@ -29,18 +26,16 @@ public:
     void run();
 };
 
-ServerController::ServerController(const std::vector<ServerConfig> &configs): multiplexer(new SelectMultiplexer()), inputView(new ConsoleInputView()) {
+ServerController::ServerController(const std::vector<ServerConfig> &configs): socketManager(new SelectSocketManager()) {
     for (std::vector<ServerConfig>::const_iterator conf = configs.begin(); conf != configs.end(); ++conf) {
         servers.push_back(Server(*conf));
     }
 }
 
 ServerController::~ServerController() {
-    if (multiplexer)
-        delete multiplexer;
+    if (socketManager)
+        delete socketManager;
 }
-
-typedef std::string Event;
 
 bool isClientText(RequestMessage requestMessage) {
     return requestMessage.size() != 0;
@@ -49,17 +44,20 @@ bool isClientText(RequestMessage requestMessage) {
 void ServerController::run() {
     while (1) {
         for (std::vector<Server>::iterator server = servers.begin(); server != servers.end(); ++server) {
-            std::pair<ConnectSd, RequestMessage> eventPair = multiplexer->detectEvent(server->listenSd, (struct sockaddr *)&server->sockAddr, (socklen_t *)&server->sockAddrLen);
+            std::pair<ConnectSd, RequestMessage> socketDetail = socketManager->getSocketDetail(server->listenSd, (struct sockaddr *)&server->sockAddr, (socklen_t *)&server->sockAddrLen);
             
-            if (isClientText(eventPair.second)) {
-                RequestInfo requestInfo(eventPair.second);
-                ResponseHandler *responseHandler = generate("HTTP", server->config);
+			int &connectSd = socketDetail.first;
+			std::string &requestMessage = socketDetail.second;
 
-                std::pair<Code, Body> yongmin = responseHandler->processResponse(requestInfo);
-                ResponseMessage responseMessage(yongmin);
-                inputView->sendResponseMessage(eventPair.first, responseMessage);
-                if (responseHandler)
-                    delete responseHandler;
+            if (isClientText(requestMessage)) {
+                Request request(requestMessage);
+                RequestHandler *requestHandler = RequestHandler::generate("HTTP", server->config);
+
+                Response response = requestHandler->handle(request);
+                ResponseMessage responseMessage(response);
+                socketManager->sendResponseMessage(connectSd, responseMessage);
+                if (requestHandler)
+                    delete requestHandler;
             }
         }
     }
