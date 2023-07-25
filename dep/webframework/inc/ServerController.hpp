@@ -40,7 +40,6 @@ ServerController::~ServerController() {
         delete multiplexer;
 }
 
-// ServerController constructor (conf) -> setting
 typedef std::string Event;
 
 bool isClientText(RequestMessage requestMessage) {
@@ -48,41 +47,17 @@ bool isClientText(RequestMessage requestMessage) {
 }
 
 void ServerController::run() {
-    
-    // 1. ServerMaker (socket -> bind -> listen)
-    //while (1)
-    // 2. ServerEventDetector (select -> accept -> FD_ISSET) -> string msg;
-    
-    // 3-1. static utils/HTTPFunctionHandler -> HTTP 1.1 (FunctionHandler)
-    // 3-2. ServerResponseMessage -> ResponseMessage
-
-
-
-    // 4 View(ResponseMessage) // ConsoleInputView (InputView)
-
-    // 생성자에서 주입
-    // SelectMultiplexer selectMultiplexer; // selectMultiplexer
-
-    // View consoleInputView();
-
     while (1) {
         for (std::vector<Server>::iterator server = servers.begin(); server != servers.end(); ++server) {
             std::pair<ConnectSd, RequestMessage> eventPair = multiplexer->detectEvent(server->listenSd, (struct sockaddr *)&server->sockAddr, (socklen_t *)&server->sockAddrLen);
             
-            // 응답을 받았다면
             if (isClientText(eventPair.second)) {
                 RequestInfo requestInfo(eventPair.second);
-                // 응답을 처리한다
-                // ResponseHandler *responseHandler = new HttpResponseHandler();
-                // ResponseHandler *responseHandler = ResponseHandler::generate("HTTP");
-                ResponseHandler *responseHandler = generate("HTTP");
-                // ResponseMessage responseMessage = responseHandler->processResponse(requestInfo);
+                ResponseHandler *responseHandler = generate("HTTP", server->config);
 
                 std::pair<Code, Body> yongmin = responseHandler->processResponse(requestInfo);
-                // std::cout << "before response BODY: " << yongmin.second << std::endl;
                 ResponseMessage responseMessage(yongmin);
                 inputView->sendResponseMessage(eventPair.first, responseMessage);
-            //     consoleInputView.sendResponse(responseMessage);
                 if (responseHandler)
                     delete responseHandler;
             }

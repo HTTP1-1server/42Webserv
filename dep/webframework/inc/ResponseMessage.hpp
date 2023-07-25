@@ -1,9 +1,9 @@
 #pragma once
 
 #include <string>
+#include "RequestInfo.hpp"
 
 typedef int         Code;
-typedef std::string Body;
 
 class ResponseMessage {
 private:
@@ -21,7 +21,9 @@ public:
 
 		std::string header = PROTOCOL + CODE_OK + STATUS_OK + CONTENT_TYPE;
 		// header = list.join();
-		message = header + std::string("\n") + pair.second;
+		std::string body = std::string(pair.second.begin(), pair.second.end());
+		std::cout << "BODY: " << body << std::endl;
+		message = header + std::string("\n") + body;
 	};
 	~ResponseMessage() {};
 };

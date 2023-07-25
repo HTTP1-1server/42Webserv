@@ -10,7 +10,6 @@
             text-align: center;
             padding: 100px;
         }
-
         h1 {
             font-size: 48px;
             color: #19e2f8;
@@ -26,33 +25,14 @@
             object-fit: cover;
         }
     </style>
-	<script>
-		window.onload = function() {
-			fetch('/uploaded_image')
-			.then(response => response.json())
-			.then(data => {
-				const imagesDiv = document.getElementById('images');
-				for (let i = 0; i < data.length; i++) {
-					let img = document.createElement('img');
-					img.src = "/public/" + data[i];
-					img.alt = "Uploaded Image " + (i + 1);
-					imagesDiv.appendChild(img);
-				}
-			});
-		}
-	</script>
 
 </head>
 <body>
-    <h1>사진을 추가해주세요!</h1>
+    <h1>Add Image</h1>
 	<form action="/upload" method="post" enctype="multipart/form-data">
 		<input type="file" name="image">
 		<input type="submit" value="Upload">
 	</form>
 
-    <h1>Uploaded Images</h1>
-		<div id="images">
-			<!-- Images will be inserted here -->
-		</div>
 </body>
 </html>

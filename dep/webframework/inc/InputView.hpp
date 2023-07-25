@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <iostream>
 #include <sys/socket.h>
 #include <unistd.h>
 #include "ResponseMessage.hpp"

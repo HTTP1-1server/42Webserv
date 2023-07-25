@@ -16,16 +16,14 @@
 #include <fcntl.h>
 #include <vector>
 
-// typedef std::vector<char>				Event;
-typedef int									ConnectSd;
-typedef std::vector<char>					RequestMessage;
+typedef int							ConnectSd;
+typedef std::string					RequestMessage;
 typedef std::map<ConnectSd, RequestMessage>	ClientSocketInfo;
 
 class Multiplexer {
 private:
 protected:
     ClientSocketInfo clientSocketInfo;
-    fd_set readFds;
 
     Multiplexer() {};
 
@@ -38,6 +36,7 @@ public:
 class SelectMultiplexer: public virtual Multiplexer {
 private:
 public:
+    fd_set readFds;
     SelectMultiplexer() {};
     ~SelectMultiplexer() {};
     std::pair<ConnectSd, RequestMessage> detectEvent(ListenSd listenSd, struct sockaddr *sockAddr, socklen_t *sockAddrLen);
