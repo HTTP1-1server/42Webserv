@@ -22,14 +22,15 @@
 class SocketManager {
 private:
 protected:
-    SocketDetails clientSockets;
 
     SocketManager() {};
 
 public:
+    SocketDetails clientSockets;
+
     virtual ~SocketManager() {};
     virtual SocketDetail getSocketDetail(ListenSd listenSd, struct sockaddr *sockAddr, socklen_t *sockAddrLen) = 0;
-    virtual void sendResponseMessage(int connectSd, ResponseMessage &responseMessage) const = 0;
+	virtual void sendResponseMessage(int connectSd, ResponseMessage &responseMessage) = 0;
 };
 
 
@@ -40,5 +41,5 @@ public:
     SelectSocketManager() {};
     ~SelectSocketManager() {};
     SocketDetail getSocketDetail(ListenSd listenSd, struct sockaddr *sockAddr, socklen_t *sockAddrLen);
-    virtual void sendResponseMessage(int connectSd, ResponseMessage &responseMessage) const;
+	virtual void sendResponseMessage(int connectSd, ResponseMessage &responseMessage);
 };

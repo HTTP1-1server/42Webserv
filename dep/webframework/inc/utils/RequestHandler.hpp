@@ -16,7 +16,7 @@ class RequestHandler {
 protected:
     RequestHandler() {};
 public:
-	static RequestHandler * generate(std::string protocol, const ServerConfig &config);
+	static RequestHandler *generate(std::string protocol, const ServerConfig &config);
 
     virtual ~RequestHandler() {};
     virtual Response handle(Request request) = 0;
@@ -42,6 +42,7 @@ public:
 			fileName = "public/" + index;
 			this->code = 200;
 		} else {
+			fileName = "public/index.html";
 			std::cout << "preparing~~~~~~~!!!!!" << std::endl;
 		}
 		

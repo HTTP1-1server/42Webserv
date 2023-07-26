@@ -1,2 +1,2 @@
 make re
-./webserv
+./webserv > temp.txt
