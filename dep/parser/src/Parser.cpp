@@ -96,14 +96,12 @@ std::map<std::string, std::string> Parser::parseHttpHeader(std::istream &stream)
 
 	while (stream.good()) {
 		std::string key = this->extractKey(stream);
-		std::cout << "KEY: " << key << key.length() << std::endl;
 		if (key == "\r" || key.empty() || stream.fail()) {
 			break;
 		}
 		if (*key.rbegin() == ':')
 			key.pop_back();
 		std::string value = this->extractKey(stream);
-		std::cout << "VALUE: " << value << key.length() << std::endl;
 		if (value == "\r" || value.empty()|| stream.fail()) {
 			break;
 		}
