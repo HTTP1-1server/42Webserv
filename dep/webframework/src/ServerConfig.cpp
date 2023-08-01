@@ -16,6 +16,10 @@ void ServerConfig::parseLocationTag(std::istream &stream, const std::string *key
 	
 	Parser locationParser;
 	locationParser.setFormat("allowed_methods", &Parser::parseVecOfStringTag);
+	locationParser.setFormat("index", &Parser::parseStringTag);
+	locationParser.setFormat("fastcgi_pass", &Parser::parseStringTag);
+	locationParser.setFormat("client_max_body_size", &Parser::parseIntTag);
+	locationParser.setFormat("root", &Parser::parseStringTag);
 
 	locations.insert(std::make_pair(path, UniquePtr<Any>(AnyType<HashMap>(locationParser.parse(stream)))));
 }
