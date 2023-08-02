@@ -4,7 +4,6 @@ NAME		:=	libwebframework.a
 
 #Source Files
 SOURCES		:=	Server.cpp \
-				ServerController.cpp \
 				SocketManager.cpp \
 				ServerConfig.cpp \
 

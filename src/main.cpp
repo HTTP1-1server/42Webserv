@@ -1,7 +1,7 @@
 #include <vector>
 #include <stdexcept>
 #include "Server.hpp"
-#include "ServerController.hpp"
+#include "ServletApplication.hpp"
 
 #define DEFAULT_FILENAME ("default.conf")
 
@@ -14,9 +14,9 @@ int main(int argc , char *argv[])
 
 	std::string filename = argv[1] == NULL ? std::string(DEFAULT_FILENAME) : std::string(argv[1]);
 	std::vector<ServerConfig> serverConfigs = parseConfiguration(filename);
-
-    ServerController serverController(serverConfigs);
-    serverController.run();
+	
+    ServletApplication servletApplication(serverConfigs);
+    servletApplication.run();
     return 0;
 }
 

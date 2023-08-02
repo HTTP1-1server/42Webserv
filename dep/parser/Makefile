@@ -22,7 +22,7 @@ DEPDIRS		:=
 CC			:=	c++
 DEBUG		:=	-g
 # SANITIZE	:=	-fsanitize=address
-CFLAGS		:=	-std=c++98 -Wall -Wextra -Werror
+CFLAGS		:= -Wall -Wextra -Werror
 
 #-------------------------------------------------------------------------------
 #DO NOT EDIT BELOW THIS LINE

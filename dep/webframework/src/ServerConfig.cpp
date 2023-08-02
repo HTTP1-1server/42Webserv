@@ -84,6 +84,7 @@ void ServerConfig::parseServerBlock(std::istream &stream, const std::string *key
 	serverParser.setFormat("location", &ServerConfig::parseLocationTag);
 	serverParser.setFormat("error_page", &ServerConfig::parseErrorTag);
 	serverParser.setFormat("index", &Parser::parseStringTag);
+	serverParser.setFormat("root", &Parser::parseStringTag);
 
 	servers.push_back(serverParser.parse(stream));
 }

@@ -17,7 +17,7 @@
 #include <stdlib.h>
 #include <fcntl.h>
 #include <vector>
-#include "ResponseMessage.hpp"
+#include "ServletResponse.hpp"
 
 class SocketManager {
 private:
@@ -30,7 +30,7 @@ public:
 
     virtual ~SocketManager() {};
     virtual SocketDetail getSocketDetail(ListenSd listenSd, struct sockaddr *sockAddr, socklen_t *sockAddrLen) = 0;
-	virtual void sendResponseMessage(int connectSd, ResponseMessage &responseMessage) = 0;
+	virtual void sendResponseMessage(int connectSd, ServletResponse &responseMessage) = 0;
 };
 
 
@@ -41,5 +41,5 @@ public:
     SelectSocketManager() {};
     ~SelectSocketManager() {};
     SocketDetail getSocketDetail(ListenSd listenSd, struct sockaddr *sockAddr, socklen_t *sockAddrLen);
-	virtual void sendResponseMessage(int connectSd, ResponseMessage &responseMessage);
+	virtual void sendResponseMessage(int connectSd, ServletResponse &responseMessage);
 };

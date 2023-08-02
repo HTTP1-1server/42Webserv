@@ -9,31 +9,32 @@
 #include <cstdlib>
 #include "Server.hpp"
 #include "SocketManager.hpp"
-#include "utils/RequestHandler.hpp"
-#include "Request.hpp"
-#include "ResponseMessage.hpp"
+#include "utils/Handler.hpp"
+#include "ServletRequest.hpp"
+#include "ServletResponse.hpp"
 #include "ServerConfig.hpp"
+#include "FrontControllerServlet.hpp"
 
-
-class ServerController {
+class ServletApplication {
 private:
     std::vector<Server> servers;
+    FrontControllerServlet frontControllerServlet;
     SocketManager *socketManager;
     
 public:
-    ServerController(const std::vector<ServerConfig> &configs);
-    ~ServerController();
+    ServletApplication(const std::vector<ServerConfig> &configs);
+    ~ServletApplication();
 
     void run();
 };
 
-ServerController::ServerController(const std::vector<ServerConfig> &configs): socketManager(new SelectSocketManager()) {
+ServletApplication::ServletApplication(const std::vector<ServerConfig> &configs): socketManager(new SelectSocketManager()), frontControllerServlet(configs) {
     for (std::vector<ServerConfig>::const_iterator conf = configs.begin(); conf != configs.end(); ++conf) {
         servers.push_back(Server(*conf));
     }
 }
 
-ServerController::~ServerController() {
+ServletApplication::~ServletApplication() {
     if (socketManager)
         delete socketManager;
 }
@@ -66,7 +67,7 @@ bool isMessageOk(const std::string &requestMessage) {
     return true;
 }
 
-void ServerController::run() {
+void ServletApplication::run() {
 	int flag = 0;
     while (1) {
         for (std::vector<Server>::iterator server = servers.begin(); server != servers.end(); ++server) {
@@ -76,14 +77,11 @@ void ServerController::run() {
 			std::string &requestMessage = socketDetail.second;
 
             if (isSocketOk(connectSd, requestMessage) && isMessageOk(requestMessage)) {
-                Request request(requestMessage);
-                RequestHandler *requestHandler = RequestHandler::generate("HTTP", server->config);
-
-                Response response = requestHandler->handle(request);
-                ResponseMessage responseMessage(response);
-                socketManager->sendResponseMessage(connectSd, responseMessage);
-                if (requestHandler)
-                    delete requestHandler;
+                ServletRequest request(requestMessage);
+                ServletResponse response;
+                frontControllerServlet.service(request, response);
+                
+                // send();
             } else {
                 if (connectSd != -1) {
                     std::cout << "Messages doesn't end. Need to receive more message" << std::endl;
