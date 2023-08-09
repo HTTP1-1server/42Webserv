@@ -40,7 +40,9 @@ SocketDetail SelectSocketManager::getSocketDetail(ListenSd listenSd, struct sock
         if (FD_ISSET(iter->first, &readFds)) {
 			n = recv(iter->first, buffer, sizeof(buffer) - 1, MSG_DONTWAIT);
 			buffer[n] = '\0';
-			iter->second.append(buffer);
+            if (n == 0)
+                continue;
+            iter->second.append(buffer);
             SocketDetail socketDetail = std::make_pair(iter->first, iter->second);
             clientSockets.erase(iter);
             return socketDetail;
