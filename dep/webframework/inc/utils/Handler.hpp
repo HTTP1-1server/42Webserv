@@ -54,18 +54,20 @@ public:
 	
 		std::map<int, std::string> errorPages = *locationConfig.at("error_page").data;
 		std::string rootPath = *locationConfig.at("root").data;
+		rootPath = "." + rootPath;
 		std::string filepath = rootPath + paramMap.at("requestURL");
 		std::ifstream ifs(filepath.c_str());
 		
+		std::cout << "FILEPATH: " << filepath << std::endl;
 		if (opendir(filepath.c_str())) {
 			if (locationConfig.find("autoindex") != locationConfig.end()) {
-				bool autoindex = *locationConfig.at("autoindex").data;
-				if (autoindex == true) {
-					return rootPath + "/autoIndex.html";
+				std::string autoindex = *locationConfig.at("autoindex").data;
+				if (autoindex == "on") {
+					return rootPath + "/resources/autoIndex.html";
 				}
 			}
 			std::string indexPath = *locationConfig.at("index").data;
-			return rootPath + indexPath;
+			return rootPath + "/" + indexPath;
 		}else if (ifs.is_open()) {
 			return filepath;
 		}

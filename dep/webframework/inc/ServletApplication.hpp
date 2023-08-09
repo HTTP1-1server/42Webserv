@@ -79,6 +79,7 @@ void ServletApplication::run() {
             if (isSocketOk(connectSd, requestMessage) && isMessageOk(requestMessage)) {
                 ServletRequest request(requestMessage);
                 ServletResponse response;
+                std::cout << "REQ URL: " << request.url << std::endl;
                 frontControllerServlet.service(request, response);
                 
                 // send();
