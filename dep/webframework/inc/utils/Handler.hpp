@@ -73,18 +73,6 @@ public:
 		response.setStatus(404);
 		return model["404"];
     };
-
-// 	Response staticWebpage(std::string filename) {
-// 		std::string filename2 = filename;
-// 		if (filename.size() >= 1 && filename[0] == '/')
-// 			filename2 = filename.substr(1, filename.size() - 1);
-// 		std::fstream fs(filename2.c_str());
-		
-// 		std::ostringstream buffer;
-// 		buffer << fs.rdbuf();
-// 		fs.close();
-// 		return std::make_pair(this->code, buffer.str());
-// 	};
 };
 
 class PostHandler: public virtual Handler {
@@ -97,9 +85,20 @@ public:
 	};
     ~PostHandler() {};
     virtual std::string process(const std::map<std::string, std::string> &paramMap, Model &model, ServletResponse &response) const {
-		(void)paramMap;
-		(void)model;
-		(void)response;
-		throw std::runtime_error("reached POST!!!");
+		std::stringstream ss;
+		ss << paramMap.at("bodyLength");
+		int requestLength;
+		ss >> requestLength;
+
+		std::stringstream ss2;
+		ss2 << model["client_max_body_size"];
+		int limit;
+		ss2 >> limit;
+
+		if (requestLength > limit) {
+			response.setStatus(413);
+			return model["413"];
+		}
+		return "." + model["root"] + "/" + model["index"];
     };
 };

@@ -47,12 +47,15 @@ public:
 		} else if (statusCode == 404) {
 			code = std::string("404 ");
 			status = std::string("Not Found\r\n");
+		} else if (statusCode == 413) {
+			code = std::string("413 ");
+			status = std::string("park sung soo\r\n");
 		}
 		const std::string CONTENT_TYPE("Content-Type: text/html\r\n");
 
 		std::string responseHeader = PROTOCOL + code + status;
 		std::string responseBody = this->body;
-
+		
 		return responseHeader + std::string("\r\n") + responseBody;
 	};
 	

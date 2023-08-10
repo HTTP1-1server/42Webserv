@@ -19,12 +19,17 @@ public:
     NormalView(const std::string &viewName): View(viewName) {};
     virtual ~NormalView() {};
     void render(const Model &model, const ServletRequest &request, ServletResponse &response) const {
-        (void)model;
         (void)request;
         std::ifstream file(this->viewName.c_str());
         if (file.good()) {
             std::stringstream buffer;
             buffer << file.rdbuf();
+            response.setBody(buffer.str());
+        } else {
+            std::ifstream errorfile(model.at("404").c_str());
+            std::stringstream buffer;
+            buffer << errorfile.rdbuf();
+            response.setStatus(404);
             response.setBody(buffer.str());
         }
     };

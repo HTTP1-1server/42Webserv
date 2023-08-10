@@ -28,6 +28,14 @@ public:
         std::map<std::string, std::string> paramMap;
         paramMap.insert(std::make_pair("requestURL", this->url));
         paramMap.insert(std::make_pair("fullURL", this->getRequestURI()));
+        if (this->headers.find("Content-Length") != this->headers.end()) {
+            paramMap.insert(std::make_pair("Content-Length", this->headers.at("Content-Length")));
+        }
+        std::stringstream ss;
+        ss << this->body.length();
+        std::string bodyLengh;
+        ss >> bodyLengh;
+        paramMap.insert(std::make_pair("bodyLength", bodyLengh));
         // TODO: body json to paramMap
         return paramMap;
     }

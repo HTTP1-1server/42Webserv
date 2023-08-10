@@ -50,14 +50,15 @@ public:
         this->insert(std::make_pair(key, value));
     }
     void addErrorPages(std::vector<ServerConfig>::const_iterator serverConfig) {
-        this->add("400", "/public/400");
-        this->add("401", "/public/401");
-        this->add("402", "/public/402");
-        this->add("403", "/public/403");
-        this->add("404", "/public/404");
-        this->add("405", "/public/405");
-        this->add("501", "/public/501");
-        this->add("502", "/public/502");
+        this->add("400", "./public/errors/400.html");
+        this->add("401", "./public/errors/401.html");
+        this->add("402", "./public/errors/402.html");
+        this->add("403", "./public/errors/403.html");
+        this->add("404", "./public/errors/404.html");
+        this->add("405", "./public/errors/405.html");
+        this->add("413", "./public/errors/413.html");
+        this->add("501", "./public/errors/501.html");
+        this->add("502", "./public/errors/502.html");
         if (serverConfig->find("error_page") == serverConfig->end())
             return;
         std::map<int, std::string> errorPages = *serverConfig->at("error_page").data;
