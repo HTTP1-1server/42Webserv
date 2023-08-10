@@ -29,7 +29,6 @@ public:
 class FrontControllerServlet: public HttpServlet {
 private:
     std::map<std::pair<std::string, std::string>, const Handler *> handlerMappingMap;
-    // const std::vector<ServerConfig> &config;
     std::map<std::string, HashMap> config;
     std::map<std::string, Model> models;
 

@@ -85,19 +85,31 @@ public:
 	};
     ~PostHandler() {};
     virtual std::string process(const std::map<std::string, std::string> &paramMap, Model &model, ServletResponse &response) const {
-		std::stringstream ss;
-		ss << paramMap.at("bodyLength");
-		int requestLength;
-		ss >> requestLength;
+		if (paramMap.find("Content-Length") != paramMap.end() && paramMap.at("Content-Length") == "0") {
+			response.setStatus(400);
+			return model["400"];
+		}
+		
+		if (model.find("client_max_body_size") != model.end()) {
+			std::stringstream ss;
+			ss << paramMap.at("bodyLength");
+			int requestLength;
+			ss >> requestLength;
 
-		std::stringstream ss2;
-		ss2 << model["client_max_body_size"];
-		int limit;
-		ss2 >> limit;
+			std::stringstream ss2;
+			ss2 << model.at("client_max_body_size");
+			int limit;
+			ss2 >> limit;
 
-		if (requestLength > limit) {
-			response.setStatus(413);
-			return model["413"];
+			if (requestLength > limit) {
+				response.setStatus(413);
+				return model["413"];
+			}
+		}
+
+		if (paramMap.at("body").empty()) {
+			response.setStatus(401);
+			return model["401"];
 		}
 		return "." + model["root"] + "/" + model["index"];
     };

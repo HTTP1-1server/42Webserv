@@ -36,6 +36,13 @@ public:
         std::string bodyLengh;
         ss >> bodyLengh;
         paramMap.insert(std::make_pair("bodyLength", bodyLengh));
+
+        if (this->body == "\r\n\r\n0\r\n\r\n") {
+            paramMap.insert(std::make_pair("body", std::string()));
+        } else {
+            paramMap.insert(std::make_pair("body", this->body));
+        }
+
         // TODO: body json to paramMap
         return paramMap;
     }

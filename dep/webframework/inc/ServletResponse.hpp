@@ -41,12 +41,21 @@ public:
 		if (statusCode == 200) {
 			code = std::string("200 ");
 			status = std::string("OK\r\n");
-		} else if (statusCode == 405) {
-			code = std::string("405 ");
-			status = std::string("Not Allowed Method\r\n");
+		} else if (statusCode == 400) {
+			code = std::string("400 ");
+			status = std::string("Bad Request\r\n");
+		} else if (statusCode == 401) {
+			code = std::string("401 ");
+			status = std::string("Unauthorized\r\n");
+		} else if (statusCode == 402) {
+			code = std::string("402 ");
+			status = std::string("Payment Required\r\n");
 		} else if (statusCode == 404) {
 			code = std::string("404 ");
 			status = std::string("Not Found\r\n");
+		} else if (statusCode == 405) {
+			code = std::string("405 ");
+			status = std::string("Not Allowed Method\r\n");
 		} else if (statusCode == 413) {
 			code = std::string("413 ");
 			status = std::string("park sung soo\r\n");
