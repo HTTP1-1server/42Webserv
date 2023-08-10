@@ -30,7 +30,7 @@ public:
 
     virtual ~SocketManager() {};
     virtual SocketDetail getSocketDetail(ListenSd listenSd, struct sockaddr *sockAddr, socklen_t *sockAddrLen) = 0;
-	virtual void sendResponseMessage(int connectSd, ServletResponse &responseMessage) = 0;
+	virtual void sendResponseMessage(int connectSd, const std::string &responseMessage) = 0;
 };
 
 
@@ -41,5 +41,5 @@ public:
     SelectSocketManager() {};
     ~SelectSocketManager() {};
     SocketDetail getSocketDetail(ListenSd listenSd, struct sockaddr *sockAddr, socklen_t *sockAddrLen);
-	virtual void sendResponseMessage(int connectSd, ServletResponse &responseMessage);
+	virtual void sendResponseMessage(int connectSd, const std::string &responseMessage);
 };

@@ -7,6 +7,7 @@
 #include "ServletResponse.hpp"
 #include "utils/Handler.hpp"
 #include "View.hpp"
+#include "Model.hpp"
 
 class GenericServlet {
 private:
@@ -30,49 +31,21 @@ private:
     std::map<std::pair<std::string, std::string>, const Handler *> handlerMappingMap;
     // const std::vector<ServerConfig> &config;
     std::map<std::string, HashMap> config;
+    std::map<std::string, Model> models;
 
 public:
+
     FrontControllerServlet(const std::vector<ServerConfig> &configs) {
+        this->models = createModels(configs);
+
         for (std::vector<ServerConfig>::const_iterator serverConfig = configs.begin(); serverConfig != configs.end(); ++serverConfig) {
             HashMap locations = *serverConfig->at("location").data;
 
             for (HashMap::const_iterator locationIter = locations.begin(); locationIter != locations.end(); ++locationIter) {
-                HashMap locationConfig = *locationIter->second.data;
-                HashMap locationBlock = locationConfig;
-                if (locationBlock.find("root") == locationBlock.end()) {
-                    std::string rootPath = *serverConfig->at("root").data;
-                    locationBlock.insert(std::make_pair("root", UniquePtr<Any>(AnyType<std::string>(rootPath))));
-                }
-                if (locationBlock.find("index") == locationBlock.end()) {
-                    std::string indexPath = *serverConfig->at("index").data;
-                    locationBlock.insert(std::make_pair("index", UniquePtr<Any>(AnyType<std::string>(indexPath))));
-                }
-
-                std::map<int, std::string> errorPages;
-                errorPages.insert(std::make_pair(400, "/public/400"));
-                errorPages.insert(std::make_pair(401, "/public/401"));
-                errorPages.insert(std::make_pair(402, "/public/402"));
-                errorPages.insert(std::make_pair(403, "/public/403"));
-                errorPages.insert(std::make_pair(404, "/public/404"));
-                errorPages.insert(std::make_pair(405, "/public/405"));
-                errorPages.insert(std::make_pair(501, "/public/501"));
-                errorPages.insert(std::make_pair(502, "/public/502"));
-
-                for (std::map<int, std::string>::iterator errorIter = errorPages.begin(); errorIter != errorPages.end(); ++errorIter) {
-                    if (serverConfig->find("error_page") == serverConfig->end()) {
-                        break;
-                    }
-                    std::map<int, std::string> serverErrorPages = *serverConfig->at("error_page").data;
-                    if (serverErrorPages.find(errorIter->first) != serverErrorPages.end()) {
-                        errorIter->second = serverErrorPages.at(errorIter->first);
-                    }
-                }
-                locationBlock.insert(std::make_pair("error_page", UniquePtr<Any>(AnyType<std::map<int, std::string> >(errorPages))));
-                
-                std::string fullURL = this->getFullURL(serverConfig, locationIter->first);
-                this->config.insert(std::make_pair(fullURL, locationBlock));
-
+                HashMap locationConfig = *locationIter->second.data;                
+                std::string fullURL = getFullURL(serverConfig, locationIter->first);
                 std::vector<std::string> allowMethods = this->getAllowedMethods(locationConfig);
+                
                 for (std::vector<std::string>::const_iterator allowMethod = allowMethods.begin(); allowMethod != allowMethods.end(); ++allowMethod) {
                     if (*allowMethod == "GET") {
                         this->handlerMappingMap.insert(std::make_pair(std::make_pair(fullURL, "GET"), new GetHandler(locationConfig)));
@@ -109,26 +82,15 @@ public:
         }
 
         std::map<std::string, std::string> paramMap = request.createParamMap();
-        std::string viewName = handler->process(paramMap, this->config);
+        Model model = findModel(request.getRequestURI());
+        std::string viewName = handler->process(paramMap, model, response);
 
         std::cout << "VIEWNAME: " << viewName << std::endl;
 
-        // View view = View::viewResolver(viewName);
-        // view.render(request, response);
-
-        // ServletResponse responseMessage(response);
-        // socketManager->sendResponseMessage(connectSd, responseMessage);
+        View *view = viewResolver(viewName);
+        view->render(model, request, response);
+        delete view;
     };
-
-    std::string getFullURL(std::vector<ServerConfig>::const_iterator serverConfig, const std::string &locationDir) {
-        std::string host = *serverConfig->at("host").data;
-        int port = *serverConfig->at("listen").data;
-        std::stringstream ssPort;
-        ssPort << port;
-        std::string portString;
-        ssPort >> portString;
-        return host + ":" + portString + locationDir;
-    }
 
     std::vector<std::string> getAllowedMethods(const HashMap &locationConfig) {
         if (locationConfig.find("allowed_methods") != locationConfig.end()) {
@@ -158,5 +120,23 @@ public:
             }
         }
         return handler;
+    }
+
+    Model findModel(const std::string &requestURI) {
+        const Model *model = NULL;
+        std::string locationPath;
+
+        for (std::map<std::string, Model>::const_iterator modelIter = this->models.begin();
+            modelIter != this->models.end();
+            ++modelIter
+        ) {
+            if (requestURI.find(modelIter->first) != std::string::npos) {
+                if (modelIter->first.length() >= locationPath.length()) {
+                    locationPath = modelIter->first;
+                    model = &modelIter->second;
+                }
+            }
+        }
+        return *model;
     }
 };

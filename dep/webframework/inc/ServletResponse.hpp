@@ -9,7 +9,9 @@
 class ServletResponse: public std::string {
 private:
 	int statusCode;
+
 public:
+	std::string body;
 	static const int OK = 200;
 	static const int CREATED = 201;
 	static const int NO_CONTENT = 204;
@@ -27,27 +29,33 @@ public:
 	void setStatus(int statusCode) {
 		this->statusCode = statusCode;
 	};
-	// ServletResponse(Response response) {
-	// 	const std::string PROTOCOL("HTTP/1.1 ");
-	// 	std::string code;
-	// 	std::string status;
-	// 	if (response.first == 200) {
-	// 		code = std::string("200 ");
-	// 		status = std::string("OK\r\n");
-	// 	} else if (response.first == 405) {
-	// 		code = std::string("405 ");
-	// 		status = std::string("Not Allowed Method\r\n");
-	// 	} else if (response.first == 401) {
-	// 		code = std::string("405 ");
-	// 		status = std::string("Not Allowed Method\r\n");
-	// 	}
-	// 	const std::string CONTENT_TYPE("Content-Type: text/html\r\n");
+	
+	void setBody(const std::string &content) {
+		this->body = content;
+	}
 
-	// 	std::string responseHeader = PROTOCOL + code + status;
-	// 	std::string responseBody = response.second;
+	std::string getFullMessage() const {
+		const std::string PROTOCOL("HTTP/1.1 ");
+		std::string code;
+		std::string status;
+		if (statusCode == 200) {
+			code = std::string("200 ");
+			status = std::string("OK\r\n");
+		} else if (statusCode == 405) {
+			code = std::string("405 ");
+			status = std::string("Not Allowed Method\r\n");
+		} else if (statusCode == 404) {
+			code = std::string("404 ");
+			status = std::string("Not Found\r\n");
+		}
+		const std::string CONTENT_TYPE("Content-Type: text/html\r\n");
 
-	// 	this->append(responseHeader + std::string("\r\n"));// + responseBody);
-	// };
+		std::string responseHeader = PROTOCOL + code + status;
+		std::string responseBody = this->body;
+
+		return responseHeader + std::string("\r\n") + responseBody;
+	};
+	
 	~ServletResponse() {};
 };
 

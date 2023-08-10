@@ -6,21 +6,22 @@
 #include <sstream>
 #include <fstream>
 #include <ctime>
-#include "SocketManager.hpp"
-#include "ServletRequest.hpp"
-#include "ServletResponse.hpp"
 #include <vector>
 #include <algorithm>
 #include <iostream>
 #include <dirent.h>
 #include <sys/types.h>
+#include "SocketManager.hpp"
+#include "ServletRequest.hpp"
+#include "ServletResponse.hpp"
+#include "Model.hpp"
 
 class Handler {
 protected:
 public:
     Handler() {};
     virtual ~Handler() {};
-    virtual std::string process(const std::map<std::string, std::string> &paramMap, const std::map<std::string, HashMap> &locationBlocks) const = 0;
+    virtual std::string process(const std::map<std::string, std::string> &paramMap, Model &model, ServletResponse &response) const = 0;
 
 	std::map<std::string, HashMap>::const_iterator findLocationBlock(const std::string &url, const std::map<std::string, HashMap> &locationBlocks) const {
 		std::map<std::string, HashMap>::const_iterator location = locationBlocks.begin();
@@ -48,30 +49,29 @@ public:
 
 	};
     virtual ~GetHandler() {};
-    std::string process(const std::map<std::string, std::string> &paramMap, const std::map<std::string, HashMap> &locationBlocks) const {
-		std::map<std::string, HashMap>::const_iterator location = this->findLocationBlock(paramMap.at("fullURL"), locationBlocks);
-		HashMap locationConfig = location->second;
-	
-		std::map<int, std::string> errorPages = *locationConfig.at("error_page").data;
-		std::string rootPath = *locationConfig.at("root").data;
-		rootPath = "." + rootPath;
+    std::string process(const std::map<std::string, std::string> &paramMap, Model &model, ServletResponse &response) const {
+		std::string rootPath = "." + model["root"];
 		std::string filepath = rootPath + paramMap.at("requestURL");
 		std::ifstream ifs(filepath.c_str());
 		
 		std::cout << "FILEPATH: " << filepath << std::endl;
-		if (opendir(filepath.c_str())) {
-			if (locationConfig.find("autoindex") != locationConfig.end()) {
-				std::string autoindex = *locationConfig.at("autoindex").data;
-				if (autoindex == "on") {
-					return rootPath + "/resources/autoIndex.html";
+		DIR *dir;
+		if ((dir = opendir(filepath.c_str()))) {
+			if (model.find("autoindex") != model.end()) {
+				if (model["autoindex"] == "on") {
+					response.setStatus(200);
+					return "./public/resources/autoIndex.html";
 				}
 			}
-			std::string indexPath = *locationConfig.at("index").data;
-			return rootPath + "/" + indexPath;
+			closedir(dir);
+			response.setStatus(200);
+			return rootPath + "/" + model["index"];
 		}else if (ifs.is_open()) {
+			response.setStatus(200);
 			return filepath;
 		}
-		return errorPages.at(404);
+		response.setStatus(404);
+		return model["404"];
     };
 
 // 	Response staticWebpage(std::string filename) {
@@ -96,9 +96,10 @@ public:
 
 	};
     ~PostHandler() {};
-    virtual std::string process(const std::map<std::string, std::string> &paramMap, const std::map<std::string, HashMap> &locationBlocks) const {
+    virtual std::string process(const std::map<std::string, std::string> &paramMap, Model &model, ServletResponse &response) const {
 		(void)paramMap;
-		(void)locationBlocks;
+		(void)model;
+		(void)response;
 		throw std::runtime_error("reached POST!!!");
     };
 };

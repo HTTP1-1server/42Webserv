@@ -18,7 +18,7 @@ public:
     Body body;
     Url url;
     std::map<std::string, std::string> headers;
-    std::string root;
+    // std::string root;
 
     std::string getRequestURI() const {
         return this->headers.at("Host") + this->url;
