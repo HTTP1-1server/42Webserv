@@ -28,7 +28,7 @@ public:
 
 class FrontControllerServlet: public HttpServlet {
 private:
-    std::map<std::pair<std::string, std::string>, const Handler *> handlerMappingMap;
+    std::map<std::string, std::map<std::string, const Handler *> > handlerMappingMap;
     std::map<std::string, HashMap> config;
     std::map<std::string, Model> models;
 
@@ -47,9 +47,11 @@ public:
                 
                 for (std::vector<std::string>::const_iterator allowMethod = allowMethods.begin(); allowMethod != allowMethods.end(); ++allowMethod) {
                     if (*allowMethod == "GET") {
-                        this->handlerMappingMap.insert(std::make_pair(std::make_pair(fullURL, "GET"), new GetHandler(locationConfig)));
+                        std::map<std::string, const Handler *> &handlers = this->handlerMappingMap[fullURL];
+                        handlers.insert(std::make_pair("GET", new GetHandler(locationConfig)));
                     } else if (*allowMethod == "POST") {
-                        this->handlerMappingMap.insert(std::make_pair(std::make_pair(fullURL, "POST"), new PostHandler(locationConfig)));
+                        std::map<std::string, const Handler *> &handlers = this->handlerMappingMap[fullURL];
+                        handlers.insert(std::make_pair("POST", new PostHandler(locationConfig)));
                     }
                     //  else if (*allowMethod == "PUT") {
                     //     this->handlerMappingMap.insert(std::make_pair(std::make_pair(fullURL, "PUT"), new PutHandler(locationConfig)));
@@ -64,19 +66,29 @@ public:
 
     };
     virtual ~FrontControllerServlet() {
-        for (std::map<std::pair<std::string, std::string>, const Handler *>::iterator iter = handlerMappingMap.begin(); iter != handlerMappingMap.end(); ++iter) {
-            if (iter->second) {
-                delete iter->second;
-                iter->second = 0;
+        for (std::map<std::string, std::map<std::string, const Handler *> >::iterator iter = handlerMappingMap.begin(); iter != handlerMappingMap.end(); ++iter) {
+            for (std::map<std::string, const Handler *>::iterator subIter = iter->second.begin();
+                subIter != iter->second.end();
+                ++subIter
+            ) {
+                if (subIter->second) {
+                    delete subIter->second;
+                    subIter->second = 0;
+                }
             }
         }
     };
 
     virtual void service(const ServletRequest &request, ServletResponse &response) {
         std::string requestURI = request.getRequestURI();
-        const Handler *handler = this->findHandler(requestURI, request.method);
-        if (handler == NULL) {
+        std::map<std::string, std::map<std::string, const Handler *> >::reverse_iterator handlerCandidates = this->findHandler(requestURI);
+        if (handlerCandidates == this->handlerMappingMap.rend()) {
             response.setStatus(ServletResponse::SC_NOT_FOUND);
+            return;
+        }
+        const Handler *handler = handlerCandidates->second[request.method];
+        if (handler == NULL) {
+            response.setStatus(ServletResponse::METHOD_NOT_ALLOWED);
             return;
         }
 
@@ -96,29 +108,24 @@ public:
             std::vector<std::string> allowedMethod = *locationConfig.at("allowed_methods").data;
             return allowedMethod;
         } else {
-            static std::string arr[] = {"GET", "POST", "PUT", "HEAD", "DELETE"};
+            static std::string arr[] = {"GET"}; // {"GET", "POST", "PUT", "HEAD", "DELETE"};
             int n = sizeof(arr) / sizeof(arr[0]);
             static const std::vector<std::string> ALL_ALLOWED_METHODS(arr, arr + n);
             return ALL_ALLOWED_METHODS;
         }
     }
 
-    const Handler *findHandler(const std::string &requestURI, const std::string &method) {
-        const Handler *handler = NULL;
-        std::string handlerName;
-
-        for (std::map<std::pair<std::string, std::string>, const Handler *>::const_iterator handlerIter = this->handlerMappingMap.begin();
-            handlerIter != this->handlerMappingMap.end();
+    std::map<std::string, std::map<std::string, const Handler *> >::reverse_iterator findHandler(const std::string &requestURI) {
+        for (std::map<std::string, std::map<std::string, const Handler *> >::reverse_iterator handlerIter = this->handlerMappingMap.rbegin();
+            handlerIter != this->handlerMappingMap.rend();
             ++handlerIter
         ) {
-            if (requestURI.find(handlerIter->first.first) != std::string::npos && method == handlerIter->first.second) {
-                if (handlerIter->first.first.length() >= handlerName.length()) {
-                    handlerName = handlerIter->first.first;
-                    handler = handlerIter->second;
-                }
+            if (requestURI.find(handlerIter->first) != std::string::npos) {
+                return handlerIter;
             }
         }
-        return handler;
+
+        return this->handlerMappingMap.rend();
     }
 
     Model findModel(const std::string &requestURI) {

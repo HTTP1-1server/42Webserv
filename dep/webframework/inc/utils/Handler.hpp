@@ -108,8 +108,13 @@ public:
 		}
 
 		if (paramMap.at("body").empty()) {
-			response.setStatus(401);
-			return model["401"];
+			int statusCode = 400; // 테스터 돌릴때 두번째 테스트 POST empty body 405가 정답
+			std::stringstream ss;
+			std::string errorCode;
+			ss << statusCode;
+			ss >> errorCode;
+			response.setStatus(statusCode);
+			return model[errorCode];
 		}
 		return "." + model["root"] + "/" + model["index"];
     };

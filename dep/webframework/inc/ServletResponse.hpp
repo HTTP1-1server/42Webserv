@@ -50,6 +50,9 @@ public:
 		} else if (statusCode == 402) {
 			code = std::string("402 ");
 			status = std::string("Payment Required\r\n");
+		} else if (statusCode == 403) {
+			code = std::string("403 ");
+			status = std::string("Forbidden\r\n");
 		} else if (statusCode == 404) {
 			code = std::string("404 ");
 			status = std::string("Not Found\r\n");
