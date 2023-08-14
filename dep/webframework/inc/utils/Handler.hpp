@@ -64,8 +64,12 @@ public:
 				}
 			}
 			closedir(dir);
-			response.setStatus(200);
-			return rootPath + "/" + model["index"];
+			std::string innerIndexFileName = filepath + "/" + model["index"];
+			std::ifstream innerIndex(innerIndexFileName.c_str());
+			if (innerIndex.good()) {
+				response.setStatus(200);
+				return filepath + "/" + model["index"];
+			}
 		}else if (ifs.is_open()) {
 			response.setStatus(200);
 			return filepath;

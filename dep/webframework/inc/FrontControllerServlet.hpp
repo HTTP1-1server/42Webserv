@@ -95,6 +95,13 @@ public:
         const std::string &requestRoot = handlerCandidates->first;
         std::map<std::string, std::string> paramMap = request.createParamMap(requestRoot);
         Model model = findModel(request.getRequestURI());
+
+        for (std::map<std::string, std::string>::const_iterator iter = model.begin();
+            iter != model.end();
+            ++iter
+        ) {
+            std::cout << "K: " << iter->first << " V: " << iter->second << std::endl;
+        }
         std::string viewName = handler->process(paramMap, model, response);
 
         std::cout << "VIEWNAME: " << viewName << std::endl;
