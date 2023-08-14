@@ -51,7 +51,7 @@ public:
     virtual ~GetHandler() {};
     std::string process(const std::map<std::string, std::string> &paramMap, Model &model, ServletResponse &response) const {
 		std::string rootPath = "." + model["root"];
-		std::string filepath = rootPath + paramMap.at("requestURL");
+		std::string filepath = rootPath + paramMap.at("restOfRequest");
 		std::ifstream ifs(filepath.c_str());
 		
 		std::cout << "FILEPATH: " << filepath << std::endl;

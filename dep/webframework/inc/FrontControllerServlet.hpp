@@ -91,8 +91,9 @@ public:
             response.setStatus(ServletResponse::METHOD_NOT_ALLOWED);
             return;
         }
-
-        std::map<std::string, std::string> paramMap = request.createParamMap();
+                                                       
+        const std::string &requestRoot = handlerCandidates->first;
+        std::map<std::string, std::string> paramMap = request.createParamMap(requestRoot);
         Model model = findModel(request.getRequestURI());
         std::string viewName = handler->process(paramMap, model, response);
 
