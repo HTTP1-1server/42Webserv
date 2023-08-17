@@ -33,7 +33,7 @@ SocketDetail SelectSocketManager::getSocketDetail(ListenSd listenSd, struct sock
         }
     }
 
-    char buffer[100];
+    char buffer[1000000];
     int n;
 
     for (SocketDetails::iterator iter = this->clientSockets.begin(); iter != this->clientSockets.end(); ++iter) {
