@@ -32,4 +32,5 @@ public:
 	static void parseVecOfStringTag(std::istream &stream, const std::string *key, HashMap &tags);
 
 	std::map<std::string, std::string> parseHttpHeader(std::istream &stream);
+	std::string parseChunkedBody(std::string &stream);
 };

@@ -65,13 +65,18 @@ public:
         this->url = token;
 
 		std::getline(headerStream, token);
-		Parser httpHeaderParser;
-		this->headers = httpHeaderParser.parseHttpHeader(headerStream);
+		Parser httpParser;
+		this->headers = httpParser.parseHttpHeader(headerStream);
 		// for (std::map<std::string, std::string>::const_iterator iter = this->headers.begin(); iter != this->headers.end(); ++iter) {
         //     const std::string &headerKey = iter->first;
 		// 	const std::string &headerValue = iter->second;
 		// }
+        
         this->body = requestMessage.substr(headerEnd, requestMessage.length() - headerEnd);
+        if (this->headers.find("Transfer-Encoding") != this->headers.end() && this->headers["Transfer-Encoding"] == "chunked") {
+            this->body = httpParser.parseChunkedBody(this->body);
+        }
+
         // TODO: check body length where body.len() is equal to Content-Length of header 
         //      with the error, server should send and error page to the client
         

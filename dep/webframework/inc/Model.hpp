@@ -86,6 +86,7 @@ inline std::map<std::string, Model> createModels(const std::vector<ServerConfig>
             model.add("autoindex", locationIter, serverConfig);
             model.add("client_max_body_size", locationIter, serverConfig);
             model.add("fastcgi_pass", locationIter, serverConfig);
+            model.add("200", "./public/200.html");
             model.addErrorPages(serverConfig);
         }
     }

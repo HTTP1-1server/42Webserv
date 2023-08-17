@@ -109,3 +109,39 @@ std::map<std::string, std::string> Parser::parseHttpHeader(std::istream &stream)
 	}
 	return header;
 }
+
+std::string Parser::parseChunkedBody(std::string &stream) {
+	// \r\n\r\n1\r\n0\r\n0\r\n\r\n
+	// \r\n1\r\n0\r\n0\r\n\r\n
+	// ffff\r\n0\r\n0\r\n\r\n
+	// \r\n0\r\n0\r\n\r\n
+	// 0 1 2 3 45 6 78 9 1011121314
+	std::string body;
+
+	while (!stream.empty() && stream != "0\r\n\r\n") {
+		int pos = stream.find("\r\n");
+		if (pos == 0) {
+			stream.erase(0, 2);
+			continue;
+		}
+		std::stringstream ss;
+		ss << std::hex << stream;
+		// ss = ffff\r\n0\r\n0\r\n\r\n
+		unsigned int chunkLength;
+		ss >> chunkLength;
+
+		int hexChunkedLength = stream.length() - ss.str().length();
+	
+		// F\r\n0\r\n0\r\n\r\n
+		// 16
+		// 1 2  1 2 
+		// 0\r\n\r\n
+		// 01 2 34 5
+		int startPos = stream.find("\r\n") + 2; //3
+		int endPos = stream.find("\r\n", startPos); //4
+		std::string chunkLiteral = stream.substr(startPos, endPos - startPos);
+		body.append(chunkLiteral);
+		stream = stream.substr(endPos + 2, stream.length() - hexChunkedLength - 2 - chunkLiteral.length() - 2);
+	}
+	return body;
+}

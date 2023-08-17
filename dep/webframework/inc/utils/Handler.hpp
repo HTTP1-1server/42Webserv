@@ -123,3 +123,32 @@ public:
 		return "." + model["root"] + "/" + model["index"];
     };
 };
+
+class PutHandler: public virtual Handler {
+private:
+public:
+	const ServerConfig &config;
+
+    PutHandler(const ServerConfig &config): config(config) {
+
+	};
+    ~PutHandler() {};
+    virtual std::string process(const std::map<std::string, std::string> &paramMap, Model &model, ServletResponse &response) const {
+		std::string filepath = "." + model["root"] + paramMap.at("restOfRequest");
+		// std::string filepath = "." + paramMap.at("requestRoot") + "/" + paramMap.at("restOfRequest");
+		std::cout << "PUT filename: " << filepath << std::endl;
+		std::ofstream ofs(filepath.c_str());
+		ofs << paramMap.at("body");
+		response.setBody(paramMap.at("body"));
+		response.setStatus(200);
+		return model["200"];
+    };
+};
+
+// localhost:8888/put_test/hello.txt
+
+// 1. Reqeust (Chunked)Body -> 파싱 -> 완전한 길이의 body로 만드는 거
+// 2. location /put_test {} <- root 디렉티브가 없음 그럼 server의 root("/")를 바라보게되고,
+//		reqeust /put_test/create_file -> 파일 생성 위치가 /put_test/create_file 이렇게 나와야하는데,
+//		우리 프로그램에서는 /create_file 이렇게 나옴
+//		paramMap.at("requestRoot") = localhost:8888/put_test//

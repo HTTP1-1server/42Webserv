@@ -22,6 +22,12 @@ void ServerConfig::parseLocationTag(std::istream &stream, const std::string *key
 	locationParser.setFormat("root", &Parser::parseStringTag);
 	locationParser.setFormat("autoindex", &Parser::parseStringTag);
 
+	if (path.find("*") == path.length() - 1) {
+		path = path.substr(0, path.length() - 1);
+		if (path.length() > 1 && path.find("/") == path.length() - 1) {
+			path = path.substr(0, path.length() - 1);
+		}
+	}
 	locations.insert(std::make_pair(path, UniquePtr<Any>(AnyType<HashMap>(locationParser.parse(stream)))));
 }
 

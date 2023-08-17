@@ -12,6 +12,16 @@ public:
     virtual ~View() {};
 
     virtual void render(const Model &model, const ServletRequest &request, ServletResponse &response) const = 0;
+
+    static void errorRender(const std::map<int, std::string> &errors, ServletResponse &response) {
+        std::string viewName = errors.at(response.statusCode);
+        std::ifstream file(viewName.c_str());
+        if (file.good()) {
+            std::stringstream buffer;
+            buffer << file.rdbuf();
+            response.setBody(buffer.str());
+        }
+    }
 };
 
 class NormalView: public View {

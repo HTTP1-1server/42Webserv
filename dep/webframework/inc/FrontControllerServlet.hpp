@@ -15,7 +15,7 @@ public:
     GenericServlet() {};
     virtual ~GenericServlet() {};
 
-    virtual void service(const ServletRequest &request, ServletResponse &response) = 0;
+    virtual void service(const ServerConfig &config, const ServletRequest &request, ServletResponse &response) = 0;
 };
 
 class HttpServlet: public GenericServlet {
@@ -23,7 +23,7 @@ public:
     HttpServlet() {};
     virtual ~HttpServlet() {};
 
-    virtual void service(const ServletRequest &request, ServletResponse &response) = 0;
+    virtual void service(const ServerConfig &config, const ServletRequest &request, ServletResponse &response) = 0;
 };
 
 class FrontControllerServlet: public HttpServlet {
@@ -53,9 +53,11 @@ public:
                         std::map<std::string, const Handler *> &handlers = this->handlerMappingMap[fullURL];
                         handlers.insert(std::make_pair("POST", new PostHandler(locationConfig)));
                     }
-                    //  else if (*allowMethod == "PUT") {
-                    //     this->handlerMappingMap.insert(std::make_pair(std::make_pair(fullURL, "PUT"), new PutHandler(locationConfig)));
-                    // } else if (*allowMethod == "HEAD") {
+                     else if (*allowMethod == "PUT") {
+                        std::map<std::string, const Handler *> &handlers = this->handlerMappingMap[fullURL];
+                        handlers.insert(std::make_pair("PUT", new PutHandler(locationConfig)));
+                    }
+                    // else if (*allowMethod == "HEAD") {
                     //     this->handlerMappingMap.insert(std::make_pair(std::make_pair(fullURL, "HEAD"), new HeadHandler(locationConfig)));
                     // } else if (*allowMethod == "DELETE") {
                     //     this->handlerMappingMap.insert(std::make_pair(std::make_pair(fullURL, "DELETE"), new DeleteHandler(locationConfig)));
@@ -79,36 +81,42 @@ public:
         }
     };
 
-    virtual void service(const ServletRequest &request, ServletResponse &response) {
+    virtual void service(const ServerConfig &config, const ServletRequest &request, ServletResponse &response) {
         std::string requestURI = request.getRequestURI();
+        const Handler *handler = NULL;
         std::map<std::string, std::map<std::string, const Handler *> >::reverse_iterator handlerCandidates = this->findHandler(requestURI);
         if (handlerCandidates == this->handlerMappingMap.rend()) {
             response.setStatus(ServletResponse::SC_NOT_FOUND);
-            return;
+            // return;
+        } else {
+            handler = handlerCandidates->second[request.method];
+            if (handler == NULL) {
+                response.setStatus(ServletResponse::METHOD_NOT_ALLOWED);
+                // return;
+            }
         }
-        const Handler *handler = handlerCandidates->second[request.method];
-        if (handler == NULL) {
-            response.setStatus(ServletResponse::METHOD_NOT_ALLOWED);
-            return;
+        if (response.statusCode >= 400) {
+            std::map<int, std::string> &errors = *config.at("error_page").data;
+            View::errorRender(errors, response);
+        } else {
+            const std::string &requestRoot = handlerCandidates->first;
+            std::map<std::string, std::string> paramMap = request.createParamMap(requestRoot);
+            Model model = findModel(request.getRequestURI());
+
+            for (std::map<std::string, std::string>::const_iterator iter = model.begin();
+                iter != model.end();
+                ++iter
+            ) {
+                std::cout << "K: " << iter->first << " V: " << iter->second << std::endl;
+            }
+            std::string viewName = handler->process(paramMap, model, response);
+
+            std::cout << "VIEWNAME: " << viewName << std::endl;
+
+            View *view = viewResolver(viewName);
+            view->render(model, request, response);
+            delete view;
         }
-                                                       
-        const std::string &requestRoot = handlerCandidates->first;
-        std::map<std::string, std::string> paramMap = request.createParamMap(requestRoot);
-        Model model = findModel(request.getRequestURI());
-
-        for (std::map<std::string, std::string>::const_iterator iter = model.begin();
-            iter != model.end();
-            ++iter
-        ) {
-            std::cout << "K: " << iter->first << " V: " << iter->second << std::endl;
-        }
-        std::string viewName = handler->process(paramMap, model, response);
-
-        std::cout << "VIEWNAME: " << viewName << std::endl;
-
-        View *view = viewResolver(viewName);
-        view->render(model, request, response);
-        delete view;
     };
 
     std::vector<std::string> getAllowedMethods(const HashMap &locationConfig) {
