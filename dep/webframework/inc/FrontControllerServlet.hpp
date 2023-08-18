@@ -46,7 +46,16 @@ public:
                 std::vector<std::string> allowMethods = this->getAllowedMethods(locationConfig);
                 
                 for (std::vector<std::string>::const_iterator allowMethod = allowMethods.begin(); allowMethod != allowMethods.end(); ++allowMethod) {
-                    if (*allowMethod == "GET") {
+                    if (locationConfig.find("fastcgi_pass") != locationConfig.end()) {
+                        // if (*allowMethod == "GET") {
+                        //     CgiGetHandler();
+                        // } else if (*allowMethod == "POST") {
+                        if (*allowMethod == "POST") {
+                            std::cout << "Create CgiHandler: " << *allowMethod << " " << fullURL << std::endl;
+                            std::map<std::string, const Handler *> &handlers = this->handlerMappingMap[fullURL];
+                            handlers.insert(std::make_pair("POST", new CgiPostHandler(locationConfig)));
+                        }
+                    } else if (*allowMethod == "GET") {
                         std::map<std::string, const Handler *> &handlers = this->handlerMappingMap[fullURL];
                         handlers.insert(std::make_pair("GET", new GetHandler(locationConfig)));
                     } else if (*allowMethod == "POST") {
@@ -99,15 +108,16 @@ public:
             View::errorRender(errors, response);
         } else {
             const std::string &requestRoot = handlerCandidates->first;
+            std::cout << "Handler path:" << requestRoot << std::endl;
             std::map<std::string, std::string> paramMap = request.createParamMap(requestRoot);
-            Model model = findModel(request.getRequestURI());
+            Model model = findModel(requestURI);
 
-            // for (std::map<std::string, std::string>::const_iterator iter = model.begin();
-            //     iter != model.end();
-            //     ++iter
-            // ) {
-            //     std::cout << "K: " << iter->first << " V: " << iter->second << std::endl;
-            // }
+            for (std::map<std::string, std::string>::const_iterator iter = model.begin();
+                iter != model.end();
+                ++iter
+            ) {
+                std::cout << "K: " << iter->first << " V: " << iter->second << std::endl;
+            }
             std::string viewName = handler->process(paramMap, model, response);
 
             // std::cout << "VIEWNAME: " << viewName << std::endl;
@@ -131,6 +141,23 @@ public:
     }
 
     std::map<std::string, std::map<std::string, const Handler *> >::reverse_iterator findHandler(const std::string &requestURI) {
+        int posSlash = requestURI.find_last_of('/');
+        int posExt = requestURI.find_last_of('.');
+
+        if (posExt != std::string::npos && posSlash != std::string::npos && posSlash + 1 < posExt) {
+            std::string url = requestURI;
+            url.replace(posSlash + 1, posExt - posSlash - 1, "*");
+            std::cout << "Find CgiHandler: " << url << std::endl;
+            for (std::map<std::string, std::map<std::string, const Handler *> >::reverse_iterator handlerIter = this->handlerMappingMap.rbegin();
+                handlerIter != this->handlerMappingMap.rend();
+                ++handlerIter
+            ) {
+                if (handlerIter->first == url) {
+                    return handlerIter;
+                }
+            }
+        }
+        
         for (std::map<std::string, std::map<std::string, const Handler *> >::reverse_iterator handlerIter = this->handlerMappingMap.rbegin();
             handlerIter != this->handlerMappingMap.rend();
             ++handlerIter
@@ -146,6 +173,20 @@ public:
     Model findModel(const std::string &requestURI) {
         const Model *model = NULL;
         std::string locationPath;
+
+        int posSlash = requestURI.find_last_of('/');
+        int posExt = requestURI.find_last_of('.');
+
+        if (posExt != std::string::npos && posSlash != std::string::npos && posSlash + 1 < posExt) {
+            std::string url = requestURI;
+            url.replace(posSlash + 1, posExt - posSlash - 1, "*");
+            std::map<std::string, Model>::iterator res = this->models.find(url);
+            std::cout << "Find : " << url << std::endl;
+            if (this->models.find(url) != this->models.end()) {
+                std::cout << "Found model: " << res->first << std::endl;
+                return res->second;
+            }
+        }
 
         for (std::map<std::string, Model>::const_iterator modelIter = this->models.begin();
             modelIter != this->models.end();

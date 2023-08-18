@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Test Index</title>
+    <style>
+		body {
+            background-color: #f874eb;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 100px;
+        }
+        h1 {
+            font-size: 48px;
+            color: #19e2f8;
+            margin-bottom: 30px;
+        }
+        .image {
+            display: inline-block;
+            margin: 10px;
+        }
+        .image img {
+            /* width: 800px;
+            height: 800px; */
+            object-fit: cover;
+        }
+    </style>
+
+</head>
+<body>
+    <h1>Add Image</h1>
+	<form action="/upload" method="post" enctype="multipart/form-data">
+		<socketManager type="file" name="image">
+		<socketManager type="submit" value="Upload">
+	</form>
+
+</body>
+</html>

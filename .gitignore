@@ -1,9 +1,13 @@
 *
 !*/
+!public/cgi/*.sh
 !*.hpp
+!*.html
+!*.jpg
 !*.tpp
 !*.cpp
 !*.md
 !Makefile
 !.gitignore
 !*.conf
+!YoupiBanane/*

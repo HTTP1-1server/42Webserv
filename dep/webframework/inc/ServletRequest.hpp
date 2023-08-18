@@ -27,11 +27,17 @@ public:
     std::map<std::string, std::string> createParamMap(const std::string &requestRoot) const {
         std::map<std::string, std::string> paramMap;
         paramMap.insert(std::make_pair("requestURL", this->url));
-        paramMap.insert(std::make_pair("requestRoot", requestRoot));
-        int pos = this->getRequestURI().find(requestRoot);
+        std::string requestPath = requestRoot;
+        const size_t extensionPos = requestPath.find_last_of("*.");
+        if (extensionPos != std::string::npos) {
+            requestPath = requestPath.substr(0, extensionPos);
+        }
+        paramMap.insert(std::make_pair("requestRoot", requestPath));
+        int pos = this->getRequestURI().find(requestPath);
         // int len = this->getRequestURI().length() - pos - requestRoot.length();
         // std::cout << "url: " << this->getRequestURI() << ", requestRoot: " << requestRoot << ", pos" << pos << ", _n: " << len <<std::endl;
-        std::string restOfRequest = this->getRequestURI().substr(pos + requestRoot.length(), this->getRequestURI().length() - pos - requestRoot.length());
+
+        std::string restOfRequest = this->getRequestURI().substr(pos + requestPath.length(), this->getRequestURI().length() - pos - requestPath.length());
         paramMap.insert(std::make_pair("restOfRequest", restOfRequest));
         paramMap.insert(std::make_pair("fullURL", this->getRequestURI()));
         if (this->headers.find("Content-Length") != this->headers.end()) {
