@@ -54,7 +54,7 @@ public:
 		std::string filepath = rootPath + paramMap.at("restOfRequest");
 		std::ifstream ifs(filepath.c_str());
 		
-		std::cout << "FILEPATH: " << filepath << std::endl;
+		// std::cout << "FILEPATH: " << filepath << std::endl;
 		DIR *dir;
 		if ((dir = opendir(filepath.c_str()))) {
 			if (model.find("autoindex") != model.end()) {
@@ -120,7 +120,13 @@ public:
 			response.setStatus(statusCode);
 			return model[errorCode];
 		}
-		return "." + model["root"] + "/" + model["index"];
+
+		std::string filepath = "." + model["root"] + paramMap.at("restOfRequest");
+		std::ofstream ofs(filepath.c_str());
+		ofs << paramMap.at("body");
+		response.setBody(paramMap.at("body"));
+		response.setStatus(200);
+		return model["200"];
     };
 };
 
@@ -129,14 +135,12 @@ private:
 public:
 	const ServerConfig &config;
 
-    PutHandler(const ServerConfig &config): config(config) {
-
-	};
-    ~PutHandler() {};
+    PutHandler(const ServerConfig &config): config(config) {};
+    virtual ~PutHandler() {};
     virtual std::string process(const std::map<std::string, std::string> &paramMap, Model &model, ServletResponse &response) const {
 		std::string filepath = "." + model["root"] + paramMap.at("restOfRequest");
 		// std::string filepath = "." + paramMap.at("requestRoot") + "/" + paramMap.at("restOfRequest");
-		std::cout << "PUT filename: " << filepath << std::endl;
+		// std::cout << "PUT filename: " << filepath << std::endl;
 		std::ofstream ofs(filepath.c_str());
 		ofs << paramMap.at("body");
 		response.setBody(paramMap.at("body"));
@@ -152,3 +156,14 @@ public:
 //		reqeust /put_test/create_file -> 파일 생성 위치가 /put_test/create_file 이렇게 나와야하는데,
 //		우리 프로그램에서는 /create_file 이렇게 나옴
 //		paramMap.at("requestRoot") = localhost:8888/put_test//
+
+// class CgiHandler: public virtual Handler {
+// private:
+// public:
+// 	CgiHandler() {};
+// 	virtual ~CgiHandler() {};
+
+// 	virtual std::string process(const std::map<std::string, std::string> &paramMap, Model &model, ServletResponse &response) const {
+		
+// 	}
+// };

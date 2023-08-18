@@ -29,8 +29,8 @@ public:
         paramMap.insert(std::make_pair("requestURL", this->url));
         paramMap.insert(std::make_pair("requestRoot", requestRoot));
         int pos = this->getRequestURI().find(requestRoot);
-        int len = this->getRequestURI().length() - pos - requestRoot.length();
-        std::cout << "url: " << this->getRequestURI() << ", requestRoot: " << requestRoot << ", pos" << pos << ", _n: " << len <<std::endl;
+        // int len = this->getRequestURI().length() - pos - requestRoot.length();
+        // std::cout << "url: " << this->getRequestURI() << ", requestRoot: " << requestRoot << ", pos" << pos << ", _n: " << len <<std::endl;
         std::string restOfRequest = this->getRequestURI().substr(pos + requestRoot.length(), this->getRequestURI().length() - pos - requestRoot.length());
         paramMap.insert(std::make_pair("restOfRequest", restOfRequest));
         paramMap.insert(std::make_pair("fullURL", this->getRequestURI()));

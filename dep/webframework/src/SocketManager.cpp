@@ -42,6 +42,8 @@ SocketDetail SelectSocketManager::getSocketDetail(ListenSd listenSd, struct sock
 			buffer[n] = '\0';
             if (n == 0)
                 continue;
+            // if (n < 0)
+            //     throw std::runtime_error("what");
             iter->second.append(buffer);
             SocketDetail socketDetail = std::make_pair(iter->first, iter->second);
             clientSockets.erase(iter);
@@ -52,8 +54,8 @@ SocketDetail SelectSocketManager::getSocketDetail(ListenSd listenSd, struct sock
 }
 
 void SelectSocketManager::sendResponseMessage(int connectSd, const std::string &responseMessage) {
-    std::cout << "++RESPONSE++\n" << responseMessage << std::endl;
+    // std::cout << "++RESPONSE++\n" << responseMessage << std::endl;
 	send(connectSd, responseMessage.c_str(), responseMessage.length(), MSG_DONTWAIT);
 	close(connectSd);
-    std::cout << "++SOCKET CLOSED++\n" << connectSd << std::endl;
+    // std::cout << "++SOCKET CLOSED++\n" << connectSd << std::endl;
 };

@@ -52,7 +52,7 @@ public:
     void render(const Model &model, const ServletRequest &request, ServletResponse &response) const {
         std::ifstream autoIndexFile(this->viewName.c_str());
         std::string directory = "." + model.at("root");
-        std::cout << "AIVIEW DIRNAME: " << directory << std::endl;
+        // std::cout << "AIVIEW DIRNAME: " << directory << std::endl;
         if (autoIndexFile.good()) {
             std::stringstream buffer;
             buffer << autoIndexFile.rdbuf();
@@ -80,7 +80,7 @@ public:
 
 View *viewResolver(const std::string &viewName) {
     if (viewName.find("autoIndex.html") != std::string::npos) {
-        std::cout << "AIVIEW?: " << viewName << std::endl;
+        // std::cout << "AIVIEW?: " << viewName << std::endl;
         return new AutoIndexView(viewName);
     }
     return new NormalView(viewName);

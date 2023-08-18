@@ -52,8 +52,7 @@ public:
                     } else if (*allowMethod == "POST") {
                         std::map<std::string, const Handler *> &handlers = this->handlerMappingMap[fullURL];
                         handlers.insert(std::make_pair("POST", new PostHandler(locationConfig)));
-                    }
-                     else if (*allowMethod == "PUT") {
+                    } else if (*allowMethod == "PUT") {
                         std::map<std::string, const Handler *> &handlers = this->handlerMappingMap[fullURL];
                         handlers.insert(std::make_pair("PUT", new PutHandler(locationConfig)));
                     }
@@ -103,15 +102,15 @@ public:
             std::map<std::string, std::string> paramMap = request.createParamMap(requestRoot);
             Model model = findModel(request.getRequestURI());
 
-            for (std::map<std::string, std::string>::const_iterator iter = model.begin();
-                iter != model.end();
-                ++iter
-            ) {
-                std::cout << "K: " << iter->first << " V: " << iter->second << std::endl;
-            }
+            // for (std::map<std::string, std::string>::const_iterator iter = model.begin();
+            //     iter != model.end();
+            //     ++iter
+            // ) {
+            //     std::cout << "K: " << iter->first << " V: " << iter->second << std::endl;
+            // }
             std::string viewName = handler->process(paramMap, model, response);
 
-            std::cout << "VIEWNAME: " << viewName << std::endl;
+            // std::cout << "VIEWNAME: " << viewName << std::endl;
 
             View *view = viewResolver(viewName);
             view->render(model, request, response);
