@@ -10,4 +10,5 @@
 !Makefile
 !.gitignore
 !*.conf
-!YoupiBanane/*
+!YoupiBanane/*/*
+!testers/*
