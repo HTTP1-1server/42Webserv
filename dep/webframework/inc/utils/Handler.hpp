@@ -43,6 +43,87 @@ public:
 	}
 };
 
+
+inline std::vector<std::string> createEnvs() {
+	std::vector<std::string> envs;
+	envs.push_back("GATEWAY_INTERFACE=CGI/1.1");
+	envs.push_back("SERVER_NAME=LeeYongSeong");
+	envs.push_back("SERVER_SOFTWARE=Weebserv/1.0");
+	envs.push_back("");
+	return envs;
+}
+
+inline std::string execCgi(const std::map<std::string, std::string> &paramMap, Model &model, ServletResponse &response) {
+	int saveStdin = dup(STDIN_FILENO);
+	int saveStdout = dup(STDOUT_FILENO);
+
+	int pipefd[2][2];
+	pipe(pipefd[0]);
+	pipe(pipefd[1]);
+	std::cout << "CgiHandler:" << model.at("cgiPath") << std::endl;
+	pid_t pid = fork();
+
+	if (pid < 0)
+	{
+		std::cerr << "fork error" << std::endl;
+		return model["501"];
+	}
+	else if (pid == 0)
+	{
+		dup2(pipefd[0][0], STDIN_FILENO);
+		dup2(pipefd[1][1], STDOUT_FILENO);
+		close(pipefd[0][0]);
+		close(pipefd[0][1]);
+		close(pipefd[1][0]);
+		close(pipefd[1][1]);
+		std::vector<std::string> envs = createEnvs();
+		std::vector<char *> envArray;
+		char * const * null = NULL;
+		for (std::vector<std::string>::iterator env = envs.begin(); env != envs.end(); ++env) {
+			if (env->empty()) {
+				envArray.push_back(NULL);
+			} else {
+				envArray.push_back(&(*env)[0]);
+			}
+		}
+		std::cerr << "BEFORE EXECV: " << model.at("cgiPath").c_str() << std::endl;
+		execve(model.at("cgiPath").c_str(), null, envArray.data());
+		std::cerr << "AFTER EXECV: " << model.at("cgiPath").c_str() << std::endl;
+		exit(1);
+	}
+	else
+	{
+		close(pipefd[0][0]);
+		close(pipefd[0][1]);
+		close(pipefd[1][1]);
+		const int BUF_SIZE = 100000;
+		char	buffer[BUF_SIZE] = {0};
+
+		waitpid(pid, NULL, 0);
+		int ret = 1;
+		while (ret > 0) {
+			memset(buffer, 0, BUF_SIZE);
+			ret = read(pipefd[1][0], buffer, BUF_SIZE - 1);
+			std::cerr << "CHILD: " << ret << std::endl;
+			response.body.append(std::string(buffer));
+		}
+	}
+
+
+	dup2(saveStdin, STDIN_FILENO);
+	dup2(saveStdout, STDOUT_FILENO);
+	std::cout << "CGI RES: " << response.body << std::endl;
+	close(pipefd[1][0]);
+	close(saveStdin);
+	close(saveStdout);
+
+	std::string filepath = "." + model["root"] + paramMap.at("restOfRequest");
+	std::ofstream ofs(filepath.c_str());
+	ofs << response.body;
+	response.setStatus(200);
+	return "cgi";
+}
+
 class GetHandler: public virtual Handler {
 private:
 public:
@@ -53,6 +134,18 @@ public:
 	};
     virtual ~GetHandler() {};
     std::string process(const std::map<std::string, std::string> &paramMap, Model &model, ServletResponse &response) const {
+
+		std::string fullUrl = paramMap.at("fullURL");
+		size_t dotPos = fullUrl.find_last_of(".");
+		if (dotPos != std::string::npos) {
+			std::string extension = fullUrl.substr(dotPos, fullUrl.length() - dotPos);
+			std::cout << "WTF EXT: " << extension << std::endl;
+			if (model.find("cgiExtension") != model.end() && model.at("cgiExtension") == extension) {
+				std::cout << "WTF2 PATH: " << model.at("cgiPath") << std::endl;
+				return execCgi(paramMap, model, response);
+			}
+		}
+
 		std::string rootPath = "." + model["root"];
 		std::string filepath = rootPath + paramMap.at("restOfRequest");
 		std::ifstream ifs(filepath.c_str());
@@ -92,6 +185,17 @@ public:
 	};
     ~PostHandler() {};
     virtual std::string process(const std::map<std::string, std::string> &paramMap, Model &model, ServletResponse &response) const {
+		std::string fullUrl = paramMap.at("fullURL");
+		size_t dotPos = fullUrl.find_last_of(".");
+		if (dotPos != std::string::npos) {
+			std::string extension = fullUrl.substr(dotPos, fullUrl.length() - dotPos);
+			std::cout << "WTF EXT: " << extension << std::endl;
+			if (model.find("cgiExtension") != model.end() && model.at("cgiExtension") == extension) {
+				std::cout << "WTF2 PATH: " << model.at("cgiPath") << std::endl;
+				return execCgi(paramMap, model, response);
+			}
+		}
+
 		if (paramMap.find("Content-Length") != paramMap.end() && paramMap.at("Content-Length") == "0") {
 			response.setStatus(400);
 			return model["400"];
@@ -159,89 +263,3 @@ public:
 //		reqeust /put_test/create_file -> 파일 생성 위치가 /put_test/create_file 이렇게 나와야하는데,
 //		우리 프로그램에서는 /create_file 이렇게 나옴
 //		paramMap.at("requestRoot") = localhost:8888/put_test//
-
-class CgiPostHandler: public virtual Handler {
-private:
-public:
-	const ServerConfig &config;
-
-	virtual ~CgiPostHandler() {};
-    CgiPostHandler(const ServerConfig &config): config(config) {};
-
-	virtual std::string process(const std::map<std::string, std::string> &paramMap, Model &model, ServletResponse &response) const {
-		int saveStdin = dup(STDIN_FILENO);
-		int saveStdout = dup(STDOUT_FILENO);
-
-		int pipefd[2][2];
-		pipe(pipefd[0]);
-		pipe(pipefd[1]);
-		std::cout << "CgiPostHandler:" << model.at("fastcgi_pass") << std::endl;
-		pid_t pid = fork();
-
-		if (pid < 0)
-		{
-			std::cerr << "fork error" << std::endl;
-			return model["501"];
-		}
-		else if (pid == 0)
-		{
-			dup2(pipefd[0][0], STDIN_FILENO);
-			dup2(pipefd[1][1], STDOUT_FILENO);
-			close(pipefd[0][0]);
-			close(pipefd[0][1]);
-			close(pipefd[1][0]);
-			close(pipefd[1][1]);
-			std::vector<std::string> envs = CgiPostHandler::createEnvs();
-			std::vector<char *> envArray;
-			char * const * null = NULL;
-			for (std::vector<std::string>::iterator env = envs.begin(); env != envs.end(); ++env) {
-				if (env->empty()) {
-					envArray.push_back(NULL);
-				} else {
-					envArray.push_back(&(*env)[0]);
-				}
-			}
-			execve(model.at("fastcgi_pass").c_str(), null, envArray.data());
-			exit(1);
-		}
-		else
-		{
-			close(pipefd[0][0]);
-			close(pipefd[0][1]);
-        	close(pipefd[1][1]);
-			const int BUF_SIZE = 100000;
-			char	buffer[BUF_SIZE] = {0};
-
-			waitpid(-1, NULL, 0);
-			int ret = 1;
-			while (ret > 0) {
-				memset(buffer, 0, BUF_SIZE);
-				ret = read(pipefd[1][0], buffer, BUF_SIZE - 1);
-				response.body.append(std::string(buffer));
-			}
-		}
-
-		std::cout << "CGI RES: " << response.body << std::endl;
-
-		dup2(saveStdin, STDIN_FILENO);
-		dup2(saveStdout, STDOUT_FILENO);
-		close(pipefd[1][0]);
-		close(saveStdin);
-		close(saveStdout);
-
-		std::string filepath = "." + model["root"] + paramMap.at("restOfRequest");
-		std::ofstream ofs(filepath.c_str());
-		ofs << response.body;
-		response.setStatus(200);
-		return model["200"];
-	}
-
-	static std::vector<std::string> createEnvs() {
-		std::vector<std::string> envs;
-		envs.push_back("GATEWAY_INTERFACE=CGI/1.1");
-		envs.push_back("SERVER_NAME=LeeYongSeong");
-		envs.push_back("SERVER_SOFTWARE=Weebserv/1.0");
-		envs.push_back("");
-		return envs;
-	}
-};

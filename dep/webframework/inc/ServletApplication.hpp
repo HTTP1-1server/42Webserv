@@ -99,6 +99,7 @@ void ServletApplication::run() {
                 //     std::cout << "ERROR: " << iter->first << iter->second << std::endl;
                 // }
                 frontControllerServlet.service(server->config, request, response);
+                std::cout << "RESPONSE: " << response.getFullMessage() << std::endl;
                 socketManager->sendResponseMessage(connectSd, response.getFullMessage());
             } else {
                 if (connectSd != -1) {

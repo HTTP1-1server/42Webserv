@@ -17,7 +17,7 @@ void ServerConfig::parseLocationTag(std::istream &stream, const std::string *key
 	Parser locationParser;
 	locationParser.setFormat("allowed_methods", &Parser::parseVecOfStringTag);
 	locationParser.setFormat("index", &Parser::parseStringTag);
-	locationParser.setFormat("fastcgi_pass", &Parser::parseStringTag);
+	locationParser.setFormat("cgi", &ServerConfig::parseCgiTag);
 	locationParser.setFormat("client_max_body_size", &Parser::parseIntTag);
 	locationParser.setFormat("root", &Parser::parseStringTag);
 	locationParser.setFormat("autoindex", &Parser::parseStringTag);
@@ -69,6 +69,24 @@ void ServerConfig::parseErrorTag(std::istream &stream, const std::string *key, H
 	}
 }
 
+void ServerConfig::parseCgiTag(std::istream &stream, const std::string *key, HashMap &tags) {
+	std::string cgiExtension;
+	stream >> cgiExtension;
+	if (stream.fail() || cgiExtension.empty()) {
+		throw std::runtime_error("parse error: " + *key);
+	}
+	std::string cgiPath;
+	stream >> cgiPath;
+	if (stream.fail())
+		throw std::runtime_error("parse error: " + *key);
+	if (*cgiPath.rbegin() == ';')
+		cgiPath.resize(cgiPath.length() - 1);
+	if (cgiPath.empty())
+		throw std::runtime_error("parse error: " + *key);
+
+	tags.insert(std::make_pair(*key, UniquePtr<Any>(AnyType<std::pair<std::string, std::string> >(std::make_pair(cgiExtension, cgiPath)))));
+}
+
 ServerConfig::ServerConfig(const HashMap &other): HashMap(other) {};
 
 void ServerConfig::parseServerBlock(std::istream &stream, const std::string *key, HashMap &tags) {
@@ -92,6 +110,7 @@ void ServerConfig::parseServerBlock(std::istream &stream, const std::string *key
 	serverParser.setFormat("error_page", &ServerConfig::parseErrorTag);
 	serverParser.setFormat("index", &Parser::parseStringTag);
 	serverParser.setFormat("root", &Parser::parseStringTag);
+	serverParser.setFormat("cgi", &ServerConfig::parseCgiTag);
 
 	servers.push_back(serverParser.parse(stream));
 }

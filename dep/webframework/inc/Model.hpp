@@ -40,12 +40,19 @@ public:
             std::string stringValue = *config->at(key).data;
             value = stringValue;
         } catch(const std::exception& e) {
-            int intValue = *config->at(key).data;
-            std::stringstream ss;
-            ss << intValue;
-            std::string stringValue;
-            ss >> stringValue;
-            value = stringValue;
+            if (key == "cgi") {
+                std::pair<std::string, std::string> cgi = *config->at(key).data;
+                this->insert(std::make_pair("cgiExtension", cgi.first));
+                this->insert(std::make_pair("cgiPath", cgi.second));
+                return;
+            } else {
+                int intValue = *config->at(key).data;
+                std::stringstream ss;
+                ss << intValue;
+                std::string stringValue;
+                ss >> stringValue;
+                value = stringValue;
+            }
         }
         this->insert(std::make_pair(key, value));
     }
@@ -85,7 +92,7 @@ inline std::map<std::string, Model> createModels(const std::vector<ServerConfig>
             model.add("index", locationIter, serverConfig);
             model.add("autoindex", locationIter, serverConfig);
             model.add("client_max_body_size", locationIter, serverConfig);
-            model.add("fastcgi_pass", locationIter, serverConfig);
+            model.add("cgi", locationIter, serverConfig);
             model.add("200", "./public/200.html");
             model.addErrorPages(serverConfig);
         }

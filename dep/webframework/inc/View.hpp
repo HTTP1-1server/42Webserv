@@ -78,43 +78,24 @@ public:
     }
 };
 
+class CgiView: public View {
+public:
+    CgiView(const std::string &viewName): View(viewName){};
+    virtual ~CgiView() {};
+    void render(const Model &model, const ServletRequest &request, ServletResponse &response) const {
+        (void)model;
+        (void)request;
+        (void)response;
+		std::cout << response.body << std::endl;
+    };
+};
+
 View *viewResolver(const std::string &viewName) {
     if (viewName.find("autoIndex.html") != std::string::npos) {
         // std::cout << "AIVIEW?: " << viewName << std::endl;
         return new AutoIndexView(viewName);
+    } else if (viewName == "cgi") {
+        return new CgiView(viewName);
     }
     return new NormalView(viewName);
 }
-
-class CgiGetView: public View {
-public:
-    CgiGetView(const std::string &viewName): View(viewName){};
-    virtual ~CgiGetView() {};
-    void render(const Model &model, const ServletRequest &request, ServletResponse &response) const {
-        std::ifstream autoIndexFile(this->viewName.c_str());
-        std::string directory = "." + model.at("root");
-        // std::cout << "AIVIEW DIRNAME: " << directory << std::endl;
-        if (autoIndexFile.good()) {
-            std::stringstream buffer;
-            buffer << autoIndexFile.rdbuf();
-
-            std::string content = buffer.str();
-            int pos = content.find("{FILELIST}");
-            content.replace(pos, 10, this->getDirContents(directory));
-            response.setBody(content.c_str());
-        }
-    };
-
-    std::string getDirContents(const std::string &dir_name) const {
-        std::string content;
-        struct dirent *ent;
-
-        DIR *dir = opendir(dir_name.c_str());
-        while ((ent = readdir(dir)) != NULL) {
-            std::string fileName(ent->d_name);
-            content.append("<ul>" + fileName + "</ul>");
-        }
-        closedir(dir);
-        return content;
-    }
-};
