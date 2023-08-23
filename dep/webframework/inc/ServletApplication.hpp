@@ -92,6 +92,8 @@ void ServletApplication::run() {
 
             if (isSocketOk(connectSd, requestMessage) && isMessageOk(requestMessage)) {
                 ServletRequest request(requestMessage);
+                // std::cout << "REQ RAW: " << requestMessage << std::endl;
+                // std::cout << "REQ BODY RAW: " << request.body << std::endl;
                 ServletResponse response;
                 // std::cout << "REQ URL: " << request.url << std::endl;
                 std::map<int, std::string> &errors = *server->config.at("error_page").data;

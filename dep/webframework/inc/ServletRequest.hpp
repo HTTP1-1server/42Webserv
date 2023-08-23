@@ -52,9 +52,11 @@ public:
         if (this->body == "\r\n\r\n0\r\n\r\n") {
             paramMap.insert(std::make_pair("body", std::string()));
         } else {
+            // std::cout << "PARAMAP BODY: " <<  this->body << std::endl;
             paramMap.insert(std::make_pair("body", this->body));
         }
 
+        paramMap.insert(std::make_pair("method", this->method));
         // TODO: body json to paramMap
         return paramMap;
     }

@@ -3,6 +3,7 @@
 #include "Types.hpp"
 
 #include <string>
+#include <map>
 #include "ServletRequest.hpp"
 
 
@@ -11,6 +12,7 @@ private:
 
 public:
 	int statusCode;
+	std::map<std::string, std::string> header;
 	std::string body;
 	static const int OK = 200;
 	static const int CREATED = 201;
@@ -38,41 +40,53 @@ public:
 		this->body = content;
 	}
 
-	std::string getFullMessage() const {
-		const std::string PROTOCOL("HTTP/1.1 ");
-		std::string code;
+	std::string getProtocol() const {
 		std::string status;
 		if (statusCode == 200) {
-			code = std::string("200 ");
-			status = std::string("OK\r\n");
+			status = std::string("200 OK\r\n");
 		} else if (statusCode == 400) {
-			code = std::string("400 ");
-			status = std::string("Bad Request\r\n");
+			status = std::string("400 Bad Request\r\n");
 		} else if (statusCode == 401) {
-			code = std::string("401 ");
-			status = std::string("Unauthorized\r\n");
+			status = std::string("401 Unauthorized\r\n");
 		} else if (statusCode == 402) {
-			code = std::string("402 ");
-			status = std::string("Payment Required\r\n");
+			status = std::string("402 Payment Required\r\n");
 		} else if (statusCode == 403) {
-			code = std::string("403 ");
-			status = std::string("Forbidden\r\n");
+			status = std::string("403 Forbidden\r\n");
 		} else if (statusCode == 404) {
-			code = std::string("404 ");
-			status = std::string("Not Found\r\n");
+			status = std::string("404 Not Found\r\n");
 		} else if (statusCode == 405) {
-			code = std::string("405 ");
-			status = std::string("Not Allowed Method\r\n");
+			status = std::string("405 Not Allowed Method\r\n");
 		} else if (statusCode == 413) {
-			code = std::string("413 ");
-			status = std::string("park sung soo\r\n");
+			status = std::string("413 Request Entity Too Large\r\n");
 		}
-		const std::string CONTENT_TYPE("Content-Type: text/html\r\n");
+		return "HTTP/1.1 " + status;
+	}
 
-		std::string responseHeader = PROTOCOL + code + status;
-		std::string responseBody = this->body;
-		
-		return responseHeader + std::string("\r\n") + responseBody;
+	void addHeader(std::string key, std::string value) {
+		this->header[key] = value;
+	}
+
+	std::string getFullMessage() const {
+		std::string headers;
+		if (this->header.find("Content-Type") == this->header.end()) {
+			headers.append("Content-Type: text/html\r\n");
+		}
+		if (this->header.find("Content-Length") == this->header.end()) {
+			std::string length;
+			std::stringstream ss;
+			ss << this->body.length();
+			ss >> length;
+			headers.append("Content-Length: " + length + "\r\n");
+		}
+		for (std::map<std::string, std::string>::const_iterator iter = this->header.begin();
+			iter != this->header.end();
+			++iter
+		) {
+			headers.append(iter->first + ": " + iter->second + "\r\n");
+		}
+		std::string message = this->getProtocol();
+		message.append(headers + "\r\n" + this->body + "\r\n\r\n");
+		return message;
 	};
 	
 	~ServletResponse() {};

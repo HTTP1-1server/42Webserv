@@ -100,11 +100,16 @@ std::map<std::string, std::string> Parser::parseHttpHeader(std::istream &stream)
 			break;
 		}
 		if (*key.rbegin() == ':')
-			key.pop_back();
-		std::string value = this->extractKey(stream);
+			key.resize(key.length() - 1);
+		std::string value;
+		std::getline(stream, value);
 		if (value == "\r" || value.empty()|| stream.fail()) {
 			break;
 		}
+		if (*value.begin() == ' ')
+			value = value.substr(1, value.length() - 1);
+		if (*value.rbegin() == '\r')
+			value.resize(value.length() - 1);
 		header.insert(std::make_pair(key, value));
 	}
 	return header;
@@ -120,6 +125,9 @@ std::string Parser::parseChunkedBody(const std::string &stream) {
 		return std::string();
 	size_t idx = 0;
 	while (idx < endIdx){
+		// \r\n\r\n<문자열길이>\r\n<문자열>\r\n<문자열길이>\r\n<문자열>\r\n0\r\n\r\n
+		// "22" "K+2"
+		// "<문자열>"
 		size_t startPos = stream.find("\r\n", idx) + 2;
 		if (startPos == std::string::npos)
 			break;

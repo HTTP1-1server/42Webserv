@@ -23,7 +23,7 @@ SocketDetail SelectSocketManager::getSocketDetail(ListenSd listenSd, struct sock
         if (FD_ISSET(listenSd, &readFds)) {
             int connectSd = accept(listenSd, sockAddr, sockAddrLen);
             if (connectSd >= 0) {
-                if (fcntl(connectSd, F_SETFL, O_NONBLOCK) < 0) {
+                if (fcntl(connectSd, F_SETFL, O_NONBLOCK, FD_CLOEXEC) < 0) {
                     printf("Failed to change the socket to non-blocking\n");
                     close(connectSd);
                 } else {
@@ -55,7 +55,24 @@ SocketDetail SelectSocketManager::getSocketDetail(ListenSd listenSd, struct sock
 
 void SelectSocketManager::sendResponseMessage(int connectSd, const std::string &responseMessage) {
     // std::cout << "++RESPONSE++\n" << responseMessage << std::endl;
-	send(connectSd, responseMessage.c_str(), responseMessage.length(), MSG_DONTWAIT);
+    const char *msg = responseMessage.c_str();
+    int msgLength = responseMessage.length();
+    int index = 0;
+    int msgSended = send(connectSd, msg + index, msgLength, 0);
+	while (msgSended > 0) {
+        index += msgSended;
+        msgLength -= msgSended;
+        // if (msgLength < 0)
+        //     break;
+        msgSended = send(connectSd, msg + index, msgLength, 0);
+		std::cout << "connectSd = " << connectSd << std::endl;
+		std::cout << "msg = " << msg << std::endl;
+		std::cout << "index = " << index << std::endl;
+		std::cout << "msgLength = " << msgLength << std::endl;
+		std::cout << "msgSended = " << msgSended << std::endl;
+		std::cout << "----------------------" << std::endl;
+    }
+	std::cout << "Return of index() = " << index + msgLength << std::endl;
 	close(connectSd);
     // std::cout << "++SOCKET CLOSED++\n" << connectSd << std::endl;
 };

@@ -82,11 +82,17 @@ class CgiView: public View {
 public:
     CgiView(const std::string &viewName): View(viewName){};
     virtual ~CgiView() {};
+    // Status: 200 OK
+    // Status: 404 Not FOund
     void render(const Model &model, const ServletRequest &request, ServletResponse &response) const {
         (void)model;
         (void)request;
-        (void)response;
-		std::cout << response.body << std::endl;
+        size_t headerEnd = response.body.find("\r\n\r\n");
+		std::stringstream headerStream(response.body.substr(0, headerEnd));
+		Parser httpParser;
+		std::map<std::string, std::string> headers = httpParser.parseHttpHeader(headerStream);
+		response.header = headers;
+        response.body = response.body.substr(headerEnd + 4, response.body.length() - 4 - headerEnd);
     };
 };
 

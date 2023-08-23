@@ -88,6 +88,7 @@ inline std::map<std::string, Model> createModels(const std::vector<ServerConfig>
         for (HashMap::const_iterator locationIter = locations.begin(); locationIter != locations.end(); ++locationIter) {
             std::string fullURL = getFullURL(serverConfig, locationIter->first);
             Model &model = models[fullURL];
+            model.add("listen", locationIter, serverConfig);
             model.add("root", locationIter, serverConfig);
             model.add("index", locationIter, serverConfig);
             model.add("autoindex", locationIter, serverConfig);

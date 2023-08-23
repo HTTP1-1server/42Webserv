@@ -44,11 +44,25 @@ public:
 };
 
 
-inline std::vector<std::string> createEnvs() {
+inline std::vector<std::string> createEnvs(const std::map<std::string, std::string> &paramMap, const Model &model) {
+	std::string requestMethod = paramMap.at("method");
+	std::string cgiPath = model.at("cgiPath");
+	std::string port = model.at("listen");
+
 	std::vector<std::string> envs;
 	envs.push_back("GATEWAY_INTERFACE=CGI/1.1");
 	envs.push_back("SERVER_NAME=LeeYongSeong");
-	envs.push_back("SERVER_SOFTWARE=Weebserv/1.0");
+	envs.push_back("SERVER_SOFTWARE=Webserv/1.0");
+	envs.push_back("REDIRECT_STATUS=200");
+	envs.push_back("SERVER_PROTOCOL=HTTP/1.1");
+	envs.push_back("SERVER_SOFTWARE=Webserv/1.0");
+	envs.push_back("REQUEST_METHOD=" + requestMethod);
+	envs.push_back("REQUEST_URI=" + cgiPath);
+	envs.push_back("SCRIPT_NAME=" + cgiPath);
+	envs.push_back("SCRIPT_FILENAME=" + cgiPath);
+	envs.push_back("PATH_INFO=" + cgiPath);
+	envs.push_back("PATH_TRANSLATED=" + cgiPath);
+	envs.push_back("SERVER_PORT=" + port);
 	envs.push_back("");
 	return envs;
 }
@@ -57,9 +71,21 @@ inline std::string execCgi(const std::map<std::string, std::string> &paramMap, M
 	int saveStdin = dup(STDIN_FILENO);
 	int saveStdout = dup(STDOUT_FILENO);
 
-	int pipefd[2][2];
-	pipe(pipefd[0]);
-	pipe(pipefd[1]);
+	// int pipefd[2][2];
+	// pipe(pipefd[0]);
+	// pipe(pipefd[1]);
+
+	FILE *files[2];
+	int fileFds[2];
+	files[0] = tmpfile();
+	files[1] = tmpfile();
+	fileFds[0] = fileno(files[0]);
+	fileFds[1] = fileno(files[1]);
+
+	const std::string &requestBody = paramMap.at("body");
+	write(fileFds[0], requestBody.c_str(), requestBody.length());
+	lseek(fileFds[0], 0, SEEK_SET);
+
 	std::cout << "CgiHandler:" << model.at("cgiPath") << std::endl;
 	pid_t pid = fork();
 
@@ -70,13 +96,16 @@ inline std::string execCgi(const std::map<std::string, std::string> &paramMap, M
 	}
 	else if (pid == 0)
 	{
-		dup2(pipefd[0][0], STDIN_FILENO);
-		dup2(pipefd[1][1], STDOUT_FILENO);
-		close(pipefd[0][0]);
-		close(pipefd[0][1]);
-		close(pipefd[1][0]);
-		close(pipefd[1][1]);
-		std::vector<std::string> envs = createEnvs();
+		dup2(fileFds[0], STDIN_FILENO);
+		dup2(fileFds[1], STDOUT_FILENO);
+		// dup2(pipefd[0][0], STDIN_FILENO);
+		// dup2(pipefd[1][1], STDOUT_FILENO);
+		// close(pipefd[0][0]);
+		// close(pipefd[0][1]);
+		// close(pipefd[1][0]);
+		// close(pipefd[1][1]);
+		
+		std::vector<std::string> envs = createEnvs(paramMap, model);
 		std::vector<char *> envArray;
 		char * const * null = NULL;
 		for (std::vector<std::string>::iterator env = envs.begin(); env != envs.end(); ++env) {
@@ -93,17 +122,22 @@ inline std::string execCgi(const std::map<std::string, std::string> &paramMap, M
 	}
 	else
 	{
-		close(pipefd[0][0]);
-		close(pipefd[0][1]);
-		close(pipefd[1][1]);
+		// close(pipefd[0][0]);
+	
+
+		// const std::string &requestBody = paramMap.at("body");
+		// write(pipefd[0][1], requestBody.c_str(), requestBody.length());
+		// close(pipefd[0][1]);
+		// close(pipefd[1][1]);
 		const int BUF_SIZE = 100000;
 		char	buffer[BUF_SIZE] = {0};
 
 		waitpid(pid, NULL, 0);
+		lseek(fileFds[1], 0, SEEK_SET);
 		int ret = 1;
 		while (ret > 0) {
 			memset(buffer, 0, BUF_SIZE);
-			ret = read(pipefd[1][0], buffer, BUF_SIZE - 1);
+			ret = read(fileFds[1], buffer, BUF_SIZE - 1);
 			std::cerr << "CHILD: " << ret << std::endl;
 			response.body.append(std::string(buffer));
 		}
@@ -113,7 +147,7 @@ inline std::string execCgi(const std::map<std::string, std::string> &paramMap, M
 	dup2(saveStdin, STDIN_FILENO);
 	dup2(saveStdout, STDOUT_FILENO);
 	std::cout << "CGI RES: " << response.body << std::endl;
-	close(pipefd[1][0]);
+	// close(pipefd[1][0]);
 	close(saveStdin);
 	close(saveStdout);
 
