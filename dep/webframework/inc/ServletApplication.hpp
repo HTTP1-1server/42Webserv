@@ -92,20 +92,12 @@ void ServletApplication::run() {
 
             if (isSocketOk(connectSd, requestMessage) && isMessageOk(requestMessage)) {
                 ServletRequest request(requestMessage);
-                // std::cout << "REQ RAW: " << requestMessage << std::endl;
-                // std::cout << "REQ BODY RAW: " << request.body << std::endl;
                 ServletResponse response;
-                // std::cout << "REQ URL: " << request.url << std::endl;
                 std::map<int, std::string> &errors = *server->config.at("error_page").data;
-                // for (std::map<int, std::string>::iterator iter = errors.begin(); iter != errors.end(); ++iter) {
-                //     std::cout << "ERROR: " << iter->first << iter->second << std::endl;
-                // }
                 frontControllerServlet.service(server->config, request, response);
-                std::cout << "RESPONSE: " << response.getFullMessage() << std::endl;
                 socketManager->sendResponseMessage(connectSd, response.getFullMessage());
             } else {
                 if (connectSd != -1) {
-                    // std::cout << "Messages doesn't end. Need to receive more message " << connectSd << " ++||" << requestMessage << "++||"<< std::endl;
                     socketManager->clientSockets.insert(std::make_pair(connectSd, requestMessage));
                 }
             }

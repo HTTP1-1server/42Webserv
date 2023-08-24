@@ -99,20 +99,9 @@ public:
             View::errorRender(errors, response);
         } else {
             const std::string &requestRoot = handlerCandidates->first;
-            std::cout << "Handler path:" << requestRoot << std::endl;
             std::map<std::string, std::string> paramMap = request.createParamMap(requestRoot);
             Model model = findModel(requestURI);
-
-            // for (std::map<std::string, std::string>::const_iterator iter = model.begin();
-            //     iter != model.end();
-            //     ++iter
-            // ) {
-            //     std::cout << "K: " << iter->first << " V: " << iter->second << std::endl;
-            // }
             std::string viewName = handler->process(paramMap, model, response);
-
-            // std::cout << "VIEWNAME: " << viewName << std::endl;
-
             View *view = viewResolver(viewName);
             view->render(model, request, response);
             delete view;

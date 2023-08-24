@@ -5,6 +5,10 @@
 #include <stdlib.h>
 #include <fcntl.h>
 
+// #include <netinet/tcp.h>
+// #include <sys/socket.h>
+
+
 Server::Server(const ServerConfig &config): config(config) {
 	this->initSocket(config);
 }
@@ -28,6 +32,9 @@ int & Server::getAddrLen() {
 }
 
 void Server::initSocket(const ServerConfig &config) {
+	
+	// struct linger linger;
+
 	//create a master socket
 	if ((listenSd = socket(AF_INET , SOCK_STREAM , 0)) == 0)
 		throw SocketCreationException();
@@ -39,6 +46,17 @@ void Server::initSocket(const ServerConfig &config) {
 	if(setsockopt(listenSd, SOL_SOCKET, SO_REUSEADDR, (char *)&opt,
 		sizeof(opt)) < 0)
 		throw SocketOptionException();
+
+	// linger.l_onoff = 1;
+    // linger.l_linger = 0;
+    // // CLOSE_WAIT 이후 10초가 지나면 소켓을 닫는다.
+    // if (setsockopt(listenSd, SOL_SOCKET, SO_LINGER, &linger, sizeof(linger)) < 0)
+    //     throw SocketOptionException();
+
+    // opt = 1;
+    // // Nagle 알고리즘 사용하지 않게 하기
+    // if (setsockopt(listenSd, IPPROTO_TCP, TCP_NODELAY, &opt, sizeof(opt)) < 0)
+    //     throw SocketOptionException();
 
 	int port = *config.at("listen").data;
 	//type of socket created
@@ -52,7 +70,7 @@ void Server::initSocket(const ServerConfig &config) {
 		throw SocketBindingException();
 
 	//try to specify maximum of 3 pending connections for the master socket
-	if (listen(listenSd, 3) < 0)
+	if (listen(listenSd, 200) < 0)
 		throw SocketListeningException();
 
 	//accept the incoming connection

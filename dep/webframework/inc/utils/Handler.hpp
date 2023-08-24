@@ -63,6 +63,11 @@ inline std::vector<std::string> createEnvs(const std::map<std::string, std::stri
 	envs.push_back("PATH_INFO=" + cgiPath);
 	envs.push_back("PATH_TRANSLATED=" + cgiPath);
 	envs.push_back("SERVER_PORT=" + port);
+
+	if (paramMap.find("secretHeader") != paramMap.end()) {
+		envs.push_back("HTTP_X_SECRET_HEADER_FOR_TEST=" + paramMap.at("secretHeader"));
+	} 
+
 	envs.push_back("");
 	return envs;
 }
@@ -70,10 +75,6 @@ inline std::vector<std::string> createEnvs(const std::map<std::string, std::stri
 inline std::string execCgi(const std::map<std::string, std::string> &paramMap, Model &model, ServletResponse &response) {
 	int saveStdin = dup(STDIN_FILENO);
 	int saveStdout = dup(STDOUT_FILENO);
-
-	// int pipefd[2][2];
-	// pipe(pipefd[0]);
-	// pipe(pipefd[1]);
 
 	FILE *files[2];
 	int fileFds[2];
@@ -86,7 +87,6 @@ inline std::string execCgi(const std::map<std::string, std::string> &paramMap, M
 	write(fileFds[0], requestBody.c_str(), requestBody.length());
 	lseek(fileFds[0], 0, SEEK_SET);
 
-	std::cout << "CgiHandler:" << model.at("cgiPath") << std::endl;
 	pid_t pid = fork();
 
 	if (pid < 0)
@@ -98,12 +98,6 @@ inline std::string execCgi(const std::map<std::string, std::string> &paramMap, M
 	{
 		dup2(fileFds[0], STDIN_FILENO);
 		dup2(fileFds[1], STDOUT_FILENO);
-		// dup2(pipefd[0][0], STDIN_FILENO);
-		// dup2(pipefd[1][1], STDOUT_FILENO);
-		// close(pipefd[0][0]);
-		// close(pipefd[0][1]);
-		// close(pipefd[1][0]);
-		// close(pipefd[1][1]);
 		
 		std::vector<std::string> envs = createEnvs(paramMap, model);
 		std::vector<char *> envArray;
@@ -115,9 +109,7 @@ inline std::string execCgi(const std::map<std::string, std::string> &paramMap, M
 				envArray.push_back(&(*env)[0]);
 			}
 		}
-		std::cerr << "BEFORE EXECV: " << model.at("cgiPath").c_str() << std::endl;
 		execve(model.at("cgiPath").c_str(), null, envArray.data());
-		std::cerr << "AFTER EXECV: " << model.at("cgiPath").c_str() << std::endl;
 		exit(1);
 	}
 	else
@@ -138,7 +130,6 @@ inline std::string execCgi(const std::map<std::string, std::string> &paramMap, M
 		while (ret > 0) {
 			memset(buffer, 0, BUF_SIZE);
 			ret = read(fileFds[1], buffer, BUF_SIZE - 1);
-			std::cerr << "CHILD: " << ret << std::endl;
 			response.body.append(std::string(buffer));
 		}
 	}
@@ -146,10 +137,10 @@ inline std::string execCgi(const std::map<std::string, std::string> &paramMap, M
 
 	dup2(saveStdin, STDIN_FILENO);
 	dup2(saveStdout, STDOUT_FILENO);
-	std::cout << "CGI RES: " << response.body << std::endl;
-	// close(pipefd[1][0]);
 	close(saveStdin);
 	close(saveStdout);
+	fclose(files[0]);
+	fclose(files[1]);
 
 	std::string filepath = "." + model["root"] + paramMap.at("restOfRequest");
 	std::ofstream ofs(filepath.c_str());
@@ -173,9 +164,7 @@ public:
 		size_t dotPos = fullUrl.find_last_of(".");
 		if (dotPos != std::string::npos) {
 			std::string extension = fullUrl.substr(dotPos, fullUrl.length() - dotPos);
-			std::cout << "WTF EXT: " << extension << std::endl;
 			if (model.find("cgiExtension") != model.end() && model.at("cgiExtension") == extension) {
-				std::cout << "WTF2 PATH: " << model.at("cgiPath") << std::endl;
 				return execCgi(paramMap, model, response);
 			}
 		}
@@ -184,7 +173,6 @@ public:
 		std::string filepath = rootPath + paramMap.at("restOfRequest");
 		std::ifstream ifs(filepath.c_str());
 		
-		// std::cout << "FILEPATH: " << filepath << std::endl;
 		DIR *dir;
 		if ((dir = opendir(filepath.c_str()))) {
 			if (model.find("autoindex") != model.end()) {
@@ -223,17 +211,15 @@ public:
 		size_t dotPos = fullUrl.find_last_of(".");
 		if (dotPos != std::string::npos) {
 			std::string extension = fullUrl.substr(dotPos, fullUrl.length() - dotPos);
-			std::cout << "WTF EXT: " << extension << std::endl;
 			if (model.find("cgiExtension") != model.end() && model.at("cgiExtension") == extension) {
-				std::cout << "WTF2 PATH: " << model.at("cgiPath") << std::endl;
 				return execCgi(paramMap, model, response);
 			}
 		}
 
-		if (paramMap.find("Content-Length") != paramMap.end() && paramMap.at("Content-Length") == "0") {
-			response.setStatus(400);
-			return model["400"];
-		}
+		// if (paramMap.find("Content-Length") != paramMap.end() && paramMap.at("Content-Length") == "0") {
+		// 	response.setStatus(400);
+		// 	return model["400"];
+		// }
 		
 		if (model.find("client_max_body_size") != model.end()) {
 			std::stringstream ss;
@@ -252,15 +238,15 @@ public:
 			}
 		}
 
-		if (paramMap.at("body").empty()) {
-			int statusCode = 400; // 테스터 돌릴때 두번째 테스트 POST empty body 405가 정답
-			std::stringstream ss;
-			std::string errorCode;
-			ss << statusCode;
-			ss >> errorCode;
-			response.setStatus(statusCode);
-			return model[errorCode];
-		}
+		// if (paramMap.at("body").empty()) {
+		// 	int statusCode = 400; // 테스터 돌릴때 두번째 테스트 POST empty body 405가 정답
+		// 	std::stringstream ss;
+		// 	std::string errorCode;
+		// 	ss << statusCode;
+		// 	ss >> errorCode;
+		// 	response.setStatus(statusCode);
+		// 	return model[errorCode];
+		// }
 
 		std::string filepath = "." + model["root"] + paramMap.at("restOfRequest");
 		std::ofstream ofs(filepath.c_str());
@@ -280,8 +266,6 @@ public:
     virtual ~PutHandler() {};
     virtual std::string process(const std::map<std::string, std::string> &paramMap, Model &model, ServletResponse &response) const {
 		std::string filepath = "." + model["root"] + paramMap.at("restOfRequest");
-		// std::string filepath = "." + paramMap.at("requestRoot") + "/" + paramMap.at("restOfRequest");
-		// std::cout << "PUT filename: " << filepath << std::endl;
 		std::ofstream ofs(filepath.c_str());
 		ofs << paramMap.at("body");
 		response.setBody(paramMap.at("body"));

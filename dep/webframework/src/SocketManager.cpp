@@ -54,25 +54,22 @@ SocketDetail SelectSocketManager::getSocketDetail(ListenSd listenSd, struct sock
 }
 
 void SelectSocketManager::sendResponseMessage(int connectSd, const std::string &responseMessage) {
-    // std::cout << "++RESPONSE++\n" << responseMessage << std::endl;
     const char *msg = responseMessage.c_str();
     int msgLength = responseMessage.length();
     int index = 0;
     int msgSended = send(connectSd, msg + index, msgLength, 0);
-	while (msgSended > 0) {
-        index += msgSended;
-        msgLength -= msgSended;
-        // if (msgLength < 0)
-        //     break;
-        msgSended = send(connectSd, msg + index, msgLength, 0);
-		std::cout << "connectSd = " << connectSd << std::endl;
-		std::cout << "msg = " << msg << std::endl;
-		std::cout << "index = " << index << std::endl;
-		std::cout << "msgLength = " << msgLength << std::endl;
-		std::cout << "msgSended = " << msgSended << std::endl;
-		std::cout << "----------------------" << std::endl;
+	while (msgLength > 0) {
+        if (msgSended > 0) {
+            index += msgSended;
+            msgLength -= msgSended;
+            msgSended = send(connectSd, msg + index, msgLength, 0);
+        } else if (errno == EAGAIN || errno == EWOULDBLOCK) {
+            usleep(100);  // try again after a short while
+            msgSended = send(connectSd, msg + index, msgLength, 0);
+            continue;
+        } else {
+            break;
+        }
     }
-	std::cout << "Return of index() = " << index + msgLength << std::endl;
 	close(connectSd);
-    // std::cout << "++SOCKET CLOSED++\n" << connectSd << std::endl;
 };

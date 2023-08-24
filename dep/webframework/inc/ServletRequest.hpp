@@ -34,8 +34,6 @@ public:
         }
         paramMap.insert(std::make_pair("requestRoot", requestPath));
         int pos = this->getRequestURI().find(requestPath);
-        // int len = this->getRequestURI().length() - pos - requestRoot.length();
-        // std::cout << "url: " << this->getRequestURI() << ", requestRoot: " << requestRoot << ", pos" << pos << ", _n: " << len <<std::endl;
 
         std::string restOfRequest = this->getRequestURI().substr(pos + requestPath.length(), this->getRequestURI().length() - pos - requestPath.length());
         paramMap.insert(std::make_pair("restOfRequest", restOfRequest));
@@ -52,11 +50,14 @@ public:
         if (this->body == "\r\n\r\n0\r\n\r\n") {
             paramMap.insert(std::make_pair("body", std::string()));
         } else {
-            // std::cout << "PARAMAP BODY: " <<  this->body << std::endl;
             paramMap.insert(std::make_pair("body", this->body));
         }
 
         paramMap.insert(std::make_pair("method", this->method));
+
+        if (headers.find("X-Secret-Header-For-Test") != headers.end()) {
+            paramMap.insert(std::make_pair("secretHeader", headers.at("X-Secret-Header-For-Test")));
+        }
         // TODO: body json to paramMap
         return paramMap;
     }

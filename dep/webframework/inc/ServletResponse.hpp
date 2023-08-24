@@ -71,6 +71,9 @@ public:
 		if (this->header.find("Content-Type") == this->header.end()) {
 			headers.append("Content-Type: text/html\r\n");
 		}
+		if (this->header.find("Connection") == this->header.end()) {
+			headers.append("Connection: close\r\n");
+		}
 		if (this->header.find("Content-Length") == this->header.end()) {
 			std::string length;
 			std::stringstream ss;
@@ -85,7 +88,7 @@ public:
 			headers.append(iter->first + ": " + iter->second + "\r\n");
 		}
 		std::string message = this->getProtocol();
-		message.append(headers + "\r\n" + this->body + "\r\n\r\n");
+		message.append(headers + "\r\n" + this->body);
 		return message;
 	};
 	
