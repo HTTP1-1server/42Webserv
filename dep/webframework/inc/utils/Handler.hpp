@@ -175,13 +175,13 @@ public:
 		
 		DIR *dir;
 		if ((dir = opendir(filepath.c_str()))) {
+			closedir(dir);
 			if (model.find("autoindex") != model.end()) {
 				if (model["autoindex"] == "on") {
 					response.setStatus(200);
 					return "./public/resources/autoIndex.html";
 				}
 			}
-			closedir(dir);
 			std::string innerIndexFileName = filepath + "/" + model["index"];
 			std::ifstream innerIndex(innerIndexFileName.c_str());
 			if (innerIndex.good()) {

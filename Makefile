@@ -21,7 +21,7 @@ DEPDIRS		:=	webframework parser
 CC			:=	c++
 DEBUG		:=	-g
 # SANITIZE	:=	-fsanitize=address
-CFLAGS		:=	-std=c++98 # -Wall -Wextra -Werror
+CFLAGS		:=	-std=c++98 -DFD_SETSIZE=10000
 
 #-------------------------------------------------------------------------------
 #DO NOT EDIT BELOW THIS LINE

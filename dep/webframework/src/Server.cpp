@@ -70,7 +70,7 @@ void Server::initSocket(const ServerConfig &config) {
 		throw SocketBindingException();
 
 	//try to specify maximum of 3 pending connections for the master socket
-	if (listen(listenSd, 200) < 0)
+	if (listen(listenSd, 10000 < 0))
 		throw SocketListeningException();
 
 	//accept the incoming connection

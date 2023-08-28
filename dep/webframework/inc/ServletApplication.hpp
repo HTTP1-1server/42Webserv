@@ -68,12 +68,12 @@ bool isMessageOk(const std::string &requestMessage) {
 
     Parser httpHeaderParser;
     std::map<std::string, std::string> header = httpHeaderParser.parseHttpHeader(headerStream);
-    if (!header["Transfer-Encoding"].empty() && header["Transfer-Encoding"].find("chunked") != std::string::npos) {
+    if (header.find("Transfer-Encoding") != header.end() && header["Transfer-Encoding"].find("chunked") != std::string::npos) {
         std::string chunkedBody = requestMessage.substr(headerEnd, requestMessage.length() - headerEnd);
         if (chunkedBody.find("0\r\n\r\n") == std::string::npos)
             return false;
     }
-    else if (!header["Content-Length"].empty()) {
+    else if (header.find("Content-Length") != header.end()) {
         int bodyLength = std::atoi(header["Content-Length"].c_str());
         if (bodyLength != requestMessage.length() - headerEnd - 4)
             return false;
@@ -86,7 +86,7 @@ void ServletApplication::run() {
     while (1) {
         for (std::vector<Server>::iterator server = servers.begin(); server != servers.end(); ++server) {
             std::pair<ConnectSd, RequestMessage> socketDetail = socketManager->getSocketDetail(server->listenSd, (struct sockaddr *)&server->sockAddr, (socklen_t *)&server->sockAddrLen);
-            
+
             int &connectSd = socketDetail.first;
             std::string &requestMessage = socketDetail.second;
 

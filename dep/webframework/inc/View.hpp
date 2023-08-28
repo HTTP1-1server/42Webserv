@@ -53,13 +53,13 @@ public:
         std::ifstream autoIndexFile(this->viewName.c_str());
         std::string directory = "." + model.at("root");
         if (autoIndexFile.good()) {
-            std::stringstream buffer;
-            buffer << autoIndexFile.rdbuf();
+            // std::stringstream buffer;
+            // buffer << autoIndexFile.rdbuf();
 
-            std::string content = buffer.str();
-            int pos = content.find("{FILELIST}");
-            content.replace(pos, 10, this->getDirContents(directory));
-            response.setBody(content.c_str());
+            // std::string content = buffer.str();
+            // int pos = content.find("{FILELIST}");
+            // content.replace(pos, 10, this->getDirContents(directory));
+            response.setBody("0");
         }
     };
 
@@ -68,6 +68,9 @@ public:
         struct dirent *ent;
 
         DIR *dir = opendir(dir_name.c_str());
+        if (dir == NULL) {
+            return "";
+        }
         while ((ent = readdir(dir)) != NULL) {
             std::string fileName(ent->d_name);
             content.append("<ul>" + fileName + "</ul>");
