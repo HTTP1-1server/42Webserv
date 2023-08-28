@@ -82,6 +82,7 @@ public:
 
     virtual void service(const ServerConfig &config, const ServletRequest &request, ServletResponse &response) {
         std::string requestURI = request.getRequestURI();
+
         const Handler *handler = NULL;
         std::map<std::string, std::map<std::string, const Handler *> >::reverse_iterator handlerCandidates = this->findHandler(requestURI);
         if (handlerCandidates == this->handlerMappingMap.rend()) {
@@ -102,6 +103,9 @@ public:
             std::map<std::string, std::string> paramMap = request.createParamMap(requestRoot);
             Model model = findModel(requestURI);
             std::string viewName = handler->process(paramMap, model, response);
+
+			std::cout << "viewName" << viewName << std::endl;
+
             View *view = viewResolver(viewName);
             view->render(model, request, response);
             delete view;

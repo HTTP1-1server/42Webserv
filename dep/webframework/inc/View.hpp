@@ -53,13 +53,13 @@ public:
         std::ifstream autoIndexFile(this->viewName.c_str());
         std::string directory = "." + model.at("root");
         if (autoIndexFile.good()) {
-            // std::stringstream buffer;
-            // buffer << autoIndexFile.rdbuf();
+            std::stringstream buffer;
+            buffer << autoIndexFile.rdbuf();
 
-            // std::string content = buffer.str();
-            // int pos = content.find("{FILELIST}");
-            // content.replace(pos, 10, this->getDirContents(directory));
-            response.setBody("0");
+            std::string content = buffer.str();
+            int pos = content.find("{FILELIST}");
+            content.replace(pos, 10, this->getDirContents(directory));
+            response.setBody(content);
         }
     };
 

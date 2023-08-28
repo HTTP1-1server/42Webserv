@@ -143,6 +143,13 @@ inline std::string execCgi(const std::map<std::string, std::string> &paramMap, M
 	fclose(files[1]);
 
 	std::string filepath = "." + model["root"] + paramMap.at("restOfRequest");
+
+	size_t start = 0;
+	while((start = filepath.find("//", start)) != std::string::npos) {
+		filepath.replace(start, 2, "/");
+		start += 1;
+	}
+
 	std::ofstream ofs(filepath.c_str());
 	ofs << response.body;
 	response.setStatus(200);
@@ -171,8 +178,18 @@ public:
 
 		std::string rootPath = "." + model["root"];
 		std::string filepath = rootPath + paramMap.at("restOfRequest");
-		std::ifstream ifs(filepath.c_str());
 		
+		size_t start = 0;
+		while((start = filepath.find("//", start)) != std::string::npos) {
+         	filepath.replace(start, 2, "/");
+         	start += 1;
+		}
+		std::cout << "filePath = " << filepath << std::endl;
+
+		std::ifstream ifs(filepath.c_str());
+
+		
+
 		DIR *dir;
 		if ((dir = opendir(filepath.c_str()))) {
 			closedir(dir);
@@ -183,10 +200,15 @@ public:
 				}
 			}
 			std::string innerIndexFileName = filepath + "/" + model["index"];
+			size_t start = 0;
+			while((start = innerIndexFileName.find("//", start)) != std::string::npos) {
+         		innerIndexFileName.replace(start, 2, "/");
+         		start += 1;
+			}
 			std::ifstream innerIndex(innerIndexFileName.c_str());
 			if (innerIndex.good()) {
 				response.setStatus(200);
-				return filepath + "/" + model["index"];
+				return innerIndexFileName;
 			}
 		}else if (ifs.is_open()) {
 			response.setStatus(200);
@@ -249,6 +271,13 @@ public:
 		// }
 
 		std::string filepath = "." + model["root"] + paramMap.at("restOfRequest");
+
+		size_t start = 0;
+		while((start = filepath.find("//", start)) != std::string::npos) {
+         	filepath.replace(start, 2, "/");
+         	start += 1;
+		}
+
 		std::ofstream ofs(filepath.c_str());
 		ofs << paramMap.at("body");
 		response.setBody(paramMap.at("body"));
@@ -266,6 +295,13 @@ public:
     virtual ~PutHandler() {};
     virtual std::string process(const std::map<std::string, std::string> &paramMap, Model &model, ServletResponse &response) const {
 		std::string filepath = "." + model["root"] + paramMap.at("restOfRequest");
+
+		size_t start = 0;
+		while((start = filepath.find("//", start)) != std::string::npos) {
+         	filepath.replace(start, 2, "/");
+         	start += 1;
+		}
+
 		std::ofstream ofs(filepath.c_str());
 		ofs << paramMap.at("body");
 		response.setBody(paramMap.at("body"));
