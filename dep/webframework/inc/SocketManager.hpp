@@ -1,23 +1,8 @@
 #pragma once
 
+#include <string>
 #include "Types.hpp"
 
-#include "Server.hpp"
-#include <string>
-#include <map>
-#include <sys/socket.h>
-#include <exception>
-#include <netinet/in.h> // htons
-#include <sys/time.h> //FD_SET, FD_ISSET, FD_ZERO macros 
-#include <sys/types.h>
-#include <unistd.h>
-#include <stdio.h>
-#include <errno.h>
-#include <string.h>
-#include <stdlib.h>
-#include <fcntl.h>
-#include <vector>
-#include "ServletResponse.hpp"
 
 class SocketManager {
 private:

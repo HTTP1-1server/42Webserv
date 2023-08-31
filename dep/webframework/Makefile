@@ -6,6 +6,13 @@ NAME		:=	libwebframework.a
 SOURCES		:=	Server.cpp \
 				SocketManager.cpp \
 				ServerConfig.cpp \
+				Handler.cpp \
+				FrontControllerServlet.cpp \
+				Model.cpp \
+				ServletApplication.cpp \
+				ServletRequest.cpp \
+				ServletResponse.cpp \
+				View.cpp \
 
 #The Directories, Source, Includes, Dependencies
 TESTDIR		:=	test

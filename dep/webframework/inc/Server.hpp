@@ -1,16 +1,8 @@
 #pragma once
 
-#include "Types.hpp"
-
-#include <sys/socket.h>
 #include <exception>
-#include <netinet/in.h> // htons
-#include <sys/time.h> //FD_SET, FD_ISSET, FD_ZERO macros 
-#include <sys/types.h>
-#include <unistd.h>
 #include "ServerConfig.hpp"
-#include "utils/Handler.hpp"
-#include <vector>
+#include "Types.hpp"
 
 class Server {
 private:

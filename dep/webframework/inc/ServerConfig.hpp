@@ -1,9 +1,7 @@
 #pragma once
 
-#include "Types.hpp"
-
-#include "Parser.hpp"
 #include <string>
+#include "Parser.hpp"
 
 class ServerConfig: public HashMap {
 private:

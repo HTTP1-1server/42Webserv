@@ -3,6 +3,10 @@
 #include <fstream>
 #include <sstream>
 #include <time.h>
+#include <sys/select.h>
+#include <fcntl.h>
+#include <unistd.h>
+
 
 SocketDetail SelectSocketManager::getSocketDetail(ListenSd listenSd, struct sockaddr *sockAddr, socklen_t *sockAddrLen)
 {
@@ -19,10 +23,7 @@ SocketDetail SelectSocketManager::getSocketDetail(ListenSd listenSd, struct sock
 		FD_SET(iter->first, &readFds);
 
     struct timeval tv = {0, 5000};
-	
     int activity = select(maxSd + 1 , &readFds , NULL , NULL , &tv);
-	// std::cout << "activity = " << activity << std::endl;
-
     if (activity > 0) {
         if (FD_ISSET(listenSd, &readFds)) {
             int connectSd = accept(listenSd, sockAddr, sockAddrLen);
@@ -36,19 +37,10 @@ SocketDetail SelectSocketManager::getSocketDetail(ListenSd listenSd, struct sock
             }
         }
 	} else {
-        // for (SocketDetails::iterator iter = this->clientSockets.begin(); iter != this->clientSockets.end();) {
-        //     std::cout << "DELETE: " << iter->first << std::endl;
-        //     //this->sendResponseMessage(iter->first, "HTTP/1.1 200 Gateway Timeout\r\nConnection: close\r\n\r\n");
-        //     SocketDetails::iterator copy = iter;
-        //     ++iter;
-        //     this->clientSockets.erase(copy);
-        //     continue;
-        // }
     }
 
     char buffer[1000000];
     int n;
-
     for (SocketDetails::iterator iter = this->clientSockets.begin(); iter != this->clientSockets.end();) {
         if (FD_ISSET(iter->first, &readFds)) {
 			n = recv(iter->first, buffer, sizeof(buffer) - 1, MSG_DONTWAIT);
