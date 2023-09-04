@@ -6,7 +6,7 @@
 
 typedef int                 Port;
 typedef int                 ListenSd;
-typedef struct sockaddr_in  SocketAddr;
+typedef struct sockaddr_in6 SocketAddrV6;
 
 typedef std::string Method;
 typedef std::string Url;

@@ -47,3 +47,13 @@ public:
     virtual ~PutHandler() {};
     virtual std::string process(const std::map<std::string, std::string> &paramMap, Model &model, ServletResponse &response) const;
 };
+
+class DeleteHandler: public virtual Handler {
+private:
+public:
+	const ServerConfig &config;
+
+    DeleteHandler(const ServerConfig &config): config(config) {};
+    virtual ~DeleteHandler() {};
+    virtual std::string process(const std::map<std::string, std::string> &paramMap, Model &model, ServletResponse &response) const;
+};

@@ -1,5 +1,6 @@
 #include "FrontControllerServlet.hpp"
 #include "View.hpp"
+#include <set>
 
 FrontControllerServlet::FrontControllerServlet(const std::vector<ServerConfig> &configs) {
     this->models = createModels(configs);
@@ -8,20 +9,33 @@ FrontControllerServlet::FrontControllerServlet(const std::vector<ServerConfig> &
         HashMap locations = *serverConfig->at("location").data;
 
         for (HashMap::const_iterator locationIter = locations.begin(); locationIter != locations.end(); ++locationIter) {
-            HashMap locationConfig = *locationIter->second.data;                
-            std::string fullURL = getFullURL(serverConfig, locationIter->first);
-            std::vector<std::string> allowMethods = this->getAllowedMethods(locationConfig);
-            
-            for (std::vector<std::string>::const_iterator allowMethod = allowMethods.begin(); allowMethod != allowMethods.end(); ++allowMethod) {
-                if (*allowMethod == "GET") {
-                    std::map<std::string, const Handler *> &handlers = this->handlerMappingMap[fullURL];
-                    handlers.insert(std::make_pair("GET", new GetHandler(locationConfig)));
-                } else if (*allowMethod == "POST") {
-                    std::map<std::string, const Handler *> &handlers = this->handlerMappingMap[fullURL];
-                    handlers.insert(std::make_pair("POST", new PostHandler(locationConfig)));
-                } else if (*allowMethod == "PUT") {
-                    std::map<std::string, const Handler *> &handlers = this->handlerMappingMap[fullURL];
-                    handlers.insert(std::make_pair("PUT", new PutHandler(locationConfig)));
+            HashMap locationConfig = *locationIter->second.data;
+            std::set<std::string> hosts;
+            std::string host = *serverConfig->at("host").data;
+            hosts.insert("localhost");
+            hosts.insert("127.0.0.1");
+            hosts.insert("[::1]");
+            hosts.insert(host);
+            for (std::set<std::string>::iterator hostIter = hosts.begin(); hostIter != hosts.end(); ++hostIter) {
+                std::string fullURL = getFullURL(serverConfig, locationIter->first);
+                fullURL.replace(0, host.length(), *hostIter);
+                std::cout << "FULLURL: " << fullURL << std::endl;
+                std::vector<std::string> allowMethods = this->getAllowedMethods(locationConfig);
+
+                for (std::vector<std::string>::const_iterator allowMethod = allowMethods.begin(); allowMethod != allowMethods.end(); ++allowMethod) {
+                    if (*allowMethod == "GET") {
+                        std::map<std::string, const Handler *> &handlers = this->handlerMappingMap[fullURL];
+                        handlers.insert(std::make_pair("GET", new GetHandler(locationConfig)));
+                    } else if (*allowMethod == "POST") {
+                        std::map<std::string, const Handler *> &handlers = this->handlerMappingMap[fullURL];
+                        handlers.insert(std::make_pair("POST", new PostHandler(locationConfig)));
+                    } else if (*allowMethod == "PUT") {
+                        std::map<std::string, const Handler *> &handlers = this->handlerMappingMap[fullURL];
+                        handlers.insert(std::make_pair("PUT", new PutHandler(locationConfig)));
+                    } else if (*allowMethod == "DELETE") {
+                        std::map<std::string, const Handler *> &handlers = this->handlerMappingMap[fullURL];
+                        handlers.insert(std::make_pair("DELETE", new DeleteHandler(locationConfig)));
+                    }
                 }
             }
         }

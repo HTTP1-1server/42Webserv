@@ -2,6 +2,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <dirent.h>
+#include <stdio.h>
 
 std::map<std::string, HashMap>::const_iterator Handler::findLocationBlock(const std::string &url, const std::map<std::string, HashMap> &locationBlocks) const {
     std::map<std::string, HashMap>::const_iterator location = locationBlocks.begin();
@@ -236,4 +237,25 @@ std::string PutHandler::process(const std::map<std::string, std::string> &paramM
     response.setBody(paramMap.at("body"));
     response.setStatus(200);
     return model["200"];
+};
+
+std::string DeleteHandler::process(const std::map<std::string, std::string> &paramMap, Model &model, ServletResponse &response) const {
+    std::string rootPath = "." + model["root"];
+    std::string filepath = rootPath + paramMap.at("restOfRequest");
+    
+    size_t start = 0;
+    while((start = filepath.find("//", start)) != std::string::npos) {
+        filepath.replace(start, 2, "/");
+        start += 1;
+    }
+    std::cout << "filePath = " << filepath << std::endl;
+    std::ifstream ifs(filepath.c_str());
+
+    if (ifs.is_open()) {
+        remove(filepath.c_str());
+        response.setStatus(200);
+        return model["200"];
+    }
+    response.setStatus(404);
+    return model["404"];
 };

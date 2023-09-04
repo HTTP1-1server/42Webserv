@@ -30,7 +30,7 @@ DEPDIRS		:=	parser
 CC			:=	c++
 DEBUG		:=	-g
 # SANITIZE	:=	-fsanitize=address
-CFLAGS		:=	-std=c++98 -Wall -Wextra -Werror -DFD_SETSIZE=10000
+CFLAGS		:=	-std=c++98 -Wall -Wextra -Werror -DFD_SETSIZE=100000
 
 #-------------------------------------------------------------------------------
 #DO NOT EDIT BELOW THIS LINE

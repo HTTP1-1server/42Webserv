@@ -9,7 +9,7 @@ private:
 public:
     const ServerConfig &config;
     ListenSd listenSd;
-    SocketAddr sockAddr;
+    SocketAddrV6 sockAddr;
     int sockAddrLen;
     
     Server(const ServerConfig &config);
@@ -17,7 +17,7 @@ public:
 
     ListenSd getListenSd() const;
 
-    SocketAddr & getAddress();
+    SocketAddrV6 & getAddress();
 
     int & getAddrLen();
 

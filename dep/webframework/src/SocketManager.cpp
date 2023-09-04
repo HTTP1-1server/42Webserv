@@ -12,14 +12,14 @@ SocketDetail SelectSocketManager::getSocketDetail(ListenSd listenSd, struct sock
 {
     int maxSd = listenSd;
 
-    for (SocketDetails::const_iterator iter = this->clientSockets.begin(); iter != this->clientSockets.end(); ++iter)
+    for (SocketDetails::const_iterator iter = this->recvSockets.begin(); iter != this->recvSockets.end(); ++iter)
         if (iter->first > maxSd)
             maxSd = iter->first;
 
 
     FD_ZERO(&readFds);
     FD_SET(listenSd, &readFds);
-	for (SocketDetails::const_iterator iter = this->clientSockets.begin(); iter != this->clientSockets.end(); ++iter)
+	for (SocketDetails::const_iterator iter = this->recvSockets.begin(); iter != this->recvSockets.end(); ++iter)
 		FD_SET(iter->first, &readFds);
 
     struct timeval tv = {0, 5000};
@@ -32,7 +32,7 @@ SocketDetail SelectSocketManager::getSocketDetail(ListenSd listenSd, struct sock
                     printf("Failed to change the socket to non-blocking\n");
                     close(connectSd);
                 } else {
-                    clientSockets.insert(std::make_pair(connectSd, RequestMessage()));
+                    recvSockets.insert(std::make_pair(connectSd, RequestMessage()));
                 }
             }
         }
@@ -41,50 +41,60 @@ SocketDetail SelectSocketManager::getSocketDetail(ListenSd listenSd, struct sock
 
     char buffer[1000000];
     int n;
-    for (SocketDetails::iterator iter = this->clientSockets.begin(); iter != this->clientSockets.end();) {
+    for (SocketDetails::iterator iter = this->recvSockets.begin(); iter != this->recvSockets.end();) {
         if (FD_ISSET(iter->first, &readFds)) {
 			n = recv(iter->first, buffer, sizeof(buffer) - 1, MSG_DONTWAIT);
 			buffer[n] = '\0';
-            if (n < 0) {
-                if (errno == EAGAIN || errno == EWOULDBLOCK) {
-                    ++iter;
-                    continue;
-                } else {
-                    SocketDetails::iterator copy = iter;
-                    close(copy->first);
-                    ++iter;
-                    this->clientSockets.erase(copy);
-                    continue;
-                }
+            if (n == 0) {
+                ++iter;
+                continue;
+            } else if (n < 0) {
+                SocketDetails::iterator copy = iter;
+                close(copy->first);
+                ++iter;
+                this->recvSockets.erase(copy);
+                continue;
             }
             iter->second.append(buffer);
             SocketDetail socketDetail = std::make_pair(iter->first, iter->second);
-            clientSockets.erase(iter);
+            recvSockets.erase(iter);
             return socketDetail;
 		}
         ++iter;
     }
+
     return std::make_pair(-1, RequestMessage());
 }
 
-void SelectSocketManager::sendResponseMessage(int connectSd, const std::string &responseMessage) {
-    const char *msg = responseMessage.c_str();
-    int msgLength = responseMessage.length();
-    int index = 0;
-    int msgSended = send(connectSd, msg + index, msgLength, 0);
-	while (msgLength > 0) {
-        if (msgSended > 0) {
-            index += msgSended;
-            msgLength -= msgSended;
-            msgSended = send(connectSd, msg + index, msgLength, 0);
-        } else if (errno == EAGAIN || errno == EWOULDBLOCK) {
-            msgSended = send(connectSd, msg + index, msgLength, 0);
+void SelectSocketManager::addResponseMessage(int connectSd, const std::string &responseMessage) {
+    this->sendSockets.insert(std::make_pair(connectSd, responseMessage));
+};
+
+void SelectSocketManager::sendResponseMessage() {
+    int n;
+    for (SocketDetails::iterator iter = this->sendSockets.begin(); iter != this->sendSockets.end();) {
+        std::string &msg = iter->second;
+        if (msg.length() == 0) {
+            SocketDetails::iterator copy = iter;
+            close(copy->first);
+            ++iter;
+            this->sendSockets.erase(copy);
+            continue;
+        }
+        n = send(iter->first, msg.c_str(), msg.length(), 0);
+        if (n > 0) {
+            msg = msg.substr(n, msg.length() - n);
+        } else if (n == 0) {
+            ++iter;
+            send(iter->first, msg.c_str(), msg.length(), 0);
             continue;
         } else {
-            break;
+            SocketDetails::iterator copy = iter;
+            close(copy->first);
+            ++iter;
+            this->sendSockets.erase(copy);
+            continue;
         }
+        ++iter;
     }
-    static int sendCount;
-    std::cout << "send: " << ++sendCount << std::endl;
-	close(connectSd);
-};
+}

@@ -63,14 +63,18 @@ void ServletApplication::run() {
 
             if (isSocketOk(connectSd, requestMessage) && isMessageOk(requestMessage)) {
                 ServletRequest request(requestMessage);
+                
                 ServletResponse response;
+                
                 frontControllerServlet.service(server->config, request, response);
-                socketManager->sendResponseMessage(connectSd, response.getFullMessage());
+                socketManager->addResponseMessage(connectSd, response.getFullMessage());
             } else {
                 if (connectSd != -1) {
-                    socketManager->clientSockets.insert(std::make_pair(connectSd, requestMessage));
+                    socketManager->recvSockets.insert(std::make_pair(connectSd, requestMessage));
                 }
             }
+
+            socketManager->sendResponseMessage();
         }
     }
 }

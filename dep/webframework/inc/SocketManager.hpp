@@ -11,11 +11,13 @@ protected:
     SocketManager() {};
 
 public:
-    SocketDetails clientSockets;
+    SocketDetails recvSockets;
+    SocketDetails sendSockets;
 
     virtual ~SocketManager() {};
     virtual SocketDetail getSocketDetail(ListenSd listenSd, struct sockaddr *sockAddr, socklen_t *sockAddrLen) = 0;
-	virtual void sendResponseMessage(int connectSd, const std::string &responseMessage) = 0;
+	virtual void addResponseMessage(int connectSd, const std::string &responseMessage) = 0;
+    virtual void sendResponseMessage() = 0;
 };
 
 
@@ -26,5 +28,6 @@ public:
     SelectSocketManager() {};
     ~SelectSocketManager() {};
     SocketDetail getSocketDetail(ListenSd listenSd, struct sockaddr *sockAddr, socklen_t *sockAddrLen);
-	virtual void sendResponseMessage(int connectSd, const std::string &responseMessage);
+	virtual void addResponseMessage(int connectSd, const std::string &responseMessage);
+    virtual void sendResponseMessage();
 };
