@@ -1,7 +1,17 @@
 #include "Model.hpp"
+#include <set>
 
 std::string getFullURL(std::vector<ServerConfig>::const_iterator serverConfig, const std::string &locationDir) {
     std::string host = *serverConfig->at("host").data;
+    int port = *serverConfig->at("listen").data;
+    std::stringstream ssPort;
+    ssPort << port;
+    std::string portString;
+    ssPort >> portString;
+    return host + ":" + portString + locationDir;
+};
+
+std::string getFullURL(const std::string &host, std::vector<ServerConfig>::const_iterator serverConfig, const std::string &locationDir) {
     int port = *serverConfig->at("listen").data;
     std::stringstream ssPort;
     ssPort << port;
@@ -74,16 +84,25 @@ std::map<std::string, Model> createModels(const std::vector<ServerConfig> &confi
         HashMap locations = *serverConfig->at("location").data;
 
         for (HashMap::const_iterator locationIter = locations.begin(); locationIter != locations.end(); ++locationIter) {
-            std::string fullURL = getFullURL(serverConfig, locationIter->first);
-            Model &model = models[fullURL];
-            model.add("listen", locationIter, serverConfig);
-            model.add("root", locationIter, serverConfig);
-            model.add("index", locationIter, serverConfig);
-            model.add("autoindex", locationIter, serverConfig);
-            model.add("client_max_body_size", locationIter, serverConfig);
-            model.add("cgi", locationIter, serverConfig);
-            model.add("200", "./public/200.html");
-            model.addErrorPages(serverConfig);
+            std::set<std::string> hosts;
+            std::string host = *serverConfig->at("host").data;
+            hosts.insert("localhost");
+            hosts.insert("127.0.0.1");
+            hosts.insert("[::1]");
+            hosts.insert(host);
+            for (std::set<std::string>::iterator hostIter = hosts.begin(); hostIter != hosts.end(); ++hostIter) {
+                std::string fullURL = getFullURL(*hostIter, serverConfig, locationIter->first);
+                Model &model = models[fullURL];
+                model.add("listen", locationIter, serverConfig);
+                model.add("root", locationIter, serverConfig);
+                model.add("index", locationIter, serverConfig);
+                model.add("autoindex", locationIter, serverConfig);
+                model.add("client_max_body_size", locationIter, serverConfig);
+                model.add("cgi", locationIter, serverConfig);
+                model.add("200", "./public/200.html");
+                model.add("303", "./public/303.html");
+                model.addErrorPages(serverConfig);
+            }
         }
     }
     return models;

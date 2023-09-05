@@ -63,6 +63,10 @@ void CgiView::render(const Model &model, const ServletRequest &request, ServletR
     (void)model;
     (void)request;
     size_t headerEnd = response.body.find("\r\n\r\n");
+    std::cout << "HE: " << headerEnd << std::endl;
+    if (headerEnd == std::string::npos) {
+        headerEnd = 0;
+    }
     std::stringstream headerStream(response.body.substr(0, headerEnd));
     Parser httpParser;
     std::map<std::string, std::string> headers = httpParser.parseHttpHeader(headerStream);

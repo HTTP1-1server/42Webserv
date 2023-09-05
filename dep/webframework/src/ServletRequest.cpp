@@ -9,7 +9,8 @@ std::map<std::string, std::string> ServletRequest::createParamMap(const std::str
     paramMap.insert(std::make_pair("requestURL", this->url));
     std::string requestPath = requestRoot;
     const size_t extensionPos = requestPath.find_last_of("*.");
-    if (extensionPos != std::string::npos) {
+    size_t colonPos = requestPath.find_last_of(":");
+    if (extensionPos != std::string::npos && colonPos != std::string::npos && colonPos < extensionPos) {
         requestPath = requestPath.substr(0, extensionPos);
     }
     paramMap.insert(std::make_pair("requestRoot", requestPath));

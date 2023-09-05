@@ -19,7 +19,7 @@ FrontControllerServlet::FrontControllerServlet(const std::vector<ServerConfig> &
             for (std::set<std::string>::iterator hostIter = hosts.begin(); hostIter != hosts.end(); ++hostIter) {
                 std::string fullURL = getFullURL(serverConfig, locationIter->first);
                 fullURL.replace(0, host.length(), *hostIter);
-                std::cout << "FULLURL: " << fullURL << std::endl;
+                // std::cout << "FULLURL: " << fullURL << std::endl;
                 std::vector<std::string> allowMethods = this->getAllowedMethods(locationConfig);
 
                 for (std::vector<std::string>::const_iterator allowMethod = allowMethods.begin(); allowMethod != allowMethods.end(); ++allowMethod) {
@@ -79,7 +79,7 @@ void FrontControllerServlet::service(const ServerConfig &config, const ServletRe
         Model model = findModel(requestURI);
         std::string viewName = handler->process(paramMap, model, response);
 
-        std::cout << "viewName" << viewName << std::endl;
+        std::cout << "viewName: " << viewName << std::endl;
 
         View *view = viewResolver(viewName);
         view->render(model, request, response);

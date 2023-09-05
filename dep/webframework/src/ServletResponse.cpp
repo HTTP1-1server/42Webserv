@@ -13,6 +13,8 @@ std::string ServletResponse::getProtocol() const {
 	std::string status;
 	if (statusCode == 200) {
 		status = std::string("200 OK\r\n");
+	} else if (statusCode == 303) {
+		status = std::string("303 Found\r\n");
 	} else if (statusCode == 400) {
 		status = std::string("400 Bad Request\r\n");
 	} else if (statusCode == 401) {
@@ -27,6 +29,8 @@ std::string ServletResponse::getProtocol() const {
 		status = std::string("405 Not Allowed Method\r\n");
 	} else if (statusCode == 413) {
 		status = std::string("413 Request Entity Too Large\r\n");
+	} else if (statusCode == 501) {
+		status = std::string("501 S2501 \r\n");
 	}
 	return "HTTP/1.1 " + status;
 }

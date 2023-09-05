@@ -3,6 +3,7 @@
 #include <sys/types.h>
 #include <dirent.h>
 #include <stdio.h>
+#include <ctime>
 
 std::map<std::string, HashMap>::const_iterator Handler::findLocationBlock(const std::string &url, const std::map<std::string, HashMap> &locationBlocks) const {
     std::map<std::string, HashMap>::const_iterator location = locationBlocks.begin();
@@ -74,7 +75,7 @@ std::string execCgi(const std::map<std::string, std::string> &paramMap, Model &m
 	{
 		dup2(fileFds[0], STDIN_FILENO);
 		dup2(fileFds[1], STDOUT_FILENO);
-		
+    
 		std::vector<std::string> envs = createEnvs(paramMap, model);
 		std::vector<char *> envArray;
 		char * const * null = NULL;
@@ -85,7 +86,19 @@ std::string execCgi(const std::map<std::string, std::string> &paramMap, Model &m
 				envArray.push_back(&(*env)[0]);
 			}
 		}
-		execve(model.at("cgiPath").c_str(), null, envArray.data());
+
+        std::vector<char *> argArray;
+        argArray.push_back(const_cast<char *>("/usr/bin/python"));
+        argArray.push_back(const_cast<char *>(model.at("cgiPath").c_str()));
+        argArray.push_back(NULL);
+
+        int res;
+        if (model.find("cgiExtension") != model.end() && model.at("cgiExtension") == ".py") {
+            res = execve("/usr/bin/python", argArray.data(), envArray.data());
+        } else {
+		    res = execve(model.at("cgiPath").c_str(), null, envArray.data());
+
+        }
 		exit(1);
 	}
 	else
@@ -93,7 +106,17 @@ std::string execCgi(const std::map<std::string, std::string> &paramMap, Model &m
 		const int BUF_SIZE = 100000;
 		char	buffer[BUF_SIZE] = {0};
 
-		waitpid(pid, NULL, 0);
+        clock_t delay = 5 * CLOCKS_PER_SEC;
+        clock_t start_time = clock();
+        int procFlag = -1;
+        while (clock() - start_time < delay) {
+		    if ((procFlag = waitpid(pid, NULL, WNOHANG)))
+                break;
+        }
+        if (procFlag < 0) {
+            response.setStatus(501);
+            return model["501"];
+        }
 		lseek(fileFds[1], 0, SEEK_SET);
 		int ret = 1;
 		while (ret > 0) {
@@ -118,16 +141,25 @@ std::string execCgi(const std::map<std::string, std::string> &paramMap, Model &m
 		start += 1;
 	}
 
-	std::ofstream ofs(filepath.c_str());
-	ofs << response.body;
-	response.setStatus(200);
+    size_t headerEnd = response.body.find("\r\n\r\n");
+    if (headerEnd == std::string::npos) {
+        response.setStatus(501);
+        return model["501"];
+    }
+
+    response.setStatus(200);
+    if (paramMap.at("method") == "POST" || paramMap.at("method") == "PUT") {
+        std::ofstream ofs(filepath.c_str());
+        ofs << response.body;
+    }
 	return "cgi";
 }
 
 std::string GetHandler::process(const std::map<std::string, std::string> &paramMap, Model &model, ServletResponse &response) const {
     std::string fullUrl = paramMap.at("fullURL");
     size_t dotPos = fullUrl.find_last_of(".");
-    if (dotPos != std::string::npos) {
+    size_t colonPos = fullUrl.find_last_of(":");
+    if (dotPos != std::string::npos && colonPos != std::string::npos && colonPos < dotPos) {
         std::string extension = fullUrl.substr(dotPos, fullUrl.length() - dotPos);
         if (model.find("cgiExtension") != model.end() && model.at("cgiExtension") == extension) {
             return execCgi(paramMap, model, response);
@@ -179,7 +211,8 @@ std::string GetHandler::process(const std::map<std::string, std::string> &paramM
 std::string PostHandler::process(const std::map<std::string, std::string> &paramMap, Model &model, ServletResponse &response) const {
     std::string fullUrl = paramMap.at("fullURL");
     size_t dotPos = fullUrl.find_last_of(".");
-    if (dotPos != std::string::npos) {
+    size_t colonPos = fullUrl.find_last_of(":");
+    if (dotPos != std::string::npos && colonPos != std::string::npos && colonPos < dotPos) {
         std::string extension = fullUrl.substr(dotPos, fullUrl.length() - dotPos);
         if (model.find("cgiExtension") != model.end() && model.at("cgiExtension") == extension) {
             return execCgi(paramMap, model, response);
@@ -216,11 +249,21 @@ std::string PostHandler::process(const std::map<std::string, std::string> &param
         start += 1;
     }
 
-    std::ofstream ofs(filepath.c_str());
-    ofs << paramMap.at("body");
-    response.setBody(paramMap.at("body"));
-    response.setStatus(200);
-    return model["200"];
+    std::ifstream file(filepath.c_str());
+    if (file.good()) {
+        std::ofstream ofs(filepath.c_str());
+        ofs << paramMap.at("body");
+        response.setBody(paramMap.at("body"));
+        response.addHeader("Location", "/index.html");
+        response.setStatus(303);
+        return model["303"];
+    } else {
+        std::ofstream ofs(filepath.c_str());
+        ofs << paramMap.at("body");
+        response.setBody(paramMap.at("body"));
+        response.setStatus(200);
+        return model["200"];
+    }
 };
 
 std::string PutHandler::process(const std::map<std::string, std::string> &paramMap, Model &model, ServletResponse &response) const {

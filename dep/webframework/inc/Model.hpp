@@ -6,6 +6,7 @@
 #include "ServerConfig.hpp"
 
 std::string getFullURL(std::vector<ServerConfig>::const_iterator serverConfig, const std::string &locationDir);
+std::string getFullURL(const std::string &host, std::vector<ServerConfig>::const_iterator serverConfig, const std::string &locationDir);
 
 class Model: public std::map<std::string, std::string> {
 private:
