@@ -1,6 +1,6 @@
 *
 !*/
-!public/cgi/*.sh
+!public/cgi/*
 !*.hpp
 !*.html
 !*.jpg
