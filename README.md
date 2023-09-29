@@ -8,4 +8,6 @@
 
 This is when you finally understand why a URL starts with HTTP
 
-A project to create a webserver that reads RFC documents and conforms to HTTP protocol rules. Webservers can be implemented in a variety of ways for this project, a single-process multiplexing server using the select() function.
+A project to create a webserver that reads RFC documents and conforms to HTTP protocol rules. 
+
+Webservers can be implemented in a variety of ways for this project, a single-process multiplexing server using the select() function.
